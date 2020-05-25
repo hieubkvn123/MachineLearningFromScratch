@@ -38,7 +38,7 @@ def h_theta_x(theta, x, b):
     return h_x_i
 
 LR = 0.01          # The learning rate
-ITERATIONS = 10000 # The max number of training iterations
+ITERATIONS = 1000  # The max number of training iterations
 MIN_LOSS = 0.05    # The min loss to be considered converged
 
 # The training process goes as followed :
@@ -86,4 +86,62 @@ for i in range(ITERATIONS):
 fig, ax = plt.subplots(1, 2, figsize=(10,5))
 
 # visualizing the results
+# first visualizing the sigmoid line
+x = np.linspace(-12, 12)
+y = sigmoid(x)
 
+# some configurations
+ax[0].set_facecolor("black")
+ax[0].grid(color='green')
+ax[0].plot(x, y, color = 'orange', alpha = 0.4, label = 'Sigmoid Line')
+
+h_theta_x_class1 = list()
+h_theta_x_class2 = list()
+p_class_1 = list()
+p_class_2 = list()
+
+for i in range(class_1.shape[0]):
+    h_theta_x_1 = forward(w, class_1[i], b)
+    p_1 = sigmoid(h_theta_x_1)
+
+    h_theta_x_2 = forward(w, class_2[i], b)
+    p_2 = sigmoid(h_theta_x_2)
+
+    h_theta_x_class1.append(h_theta_x_1)
+    p_class_1.append(p_1)
+    h_theta_x_class2.append(h_theta_x_2)
+    p_class_2.append(p_2)
+
+ax[0].scatter(h_theta_x_class1, p_class_1, color='blue', label='Class 1')
+ax[0].scatter(h_theta_x_class2, p_class_2, color='red', label='Class 2')
+ax[0].hlines(0.5, -12, 12, color='cyan', linestyle='--')
+
+# do some filling over here
+x = np.linspace(-12, 0)
+y_horizontal_line = 0 * x + 0.5
+y_sigmoid_half = sigmoid(x)
+ax[0].fill_between(x, y_horizontal_line, y_sigmoid_half, color='red', alpha=0.4)
+
+x = np.linspace(0, 12)
+y_horizontal_line = 0 * x + 0.5
+y_sigmoid_half = sigmoid(x)
+ax[0].fill_between(x, y_horizontal_line, y_sigmoid_half, color='blue', alpha = 0.4)
+
+ax[0].set_title("Results Visualization")
+ax[0].set_xlabel("Sigmoid of kernel")
+ax[0].set_ylabel("Probability")
+ax[0].legend()
+
+ax[1].set_facecolor("black")
+ax[1].grid(color='green')
+ax[1].plot(losses, color='red', label='Losses')
+ax[1].plot(variances, color='yellow', label='Variances')
+
+ax[1].fill_between(list(range(len(losses))), losses, color='red', alpha=0.4)
+ax[1].fill_between(list(range(len(variances))), variances, color='yellow', alpha=0.8)
+
+ax[1].set_xlabel("Epochs/Iterations")
+ax[1].set_ylabel("Variances/Losses")
+ax[1].legend()
+
+plt.show()
