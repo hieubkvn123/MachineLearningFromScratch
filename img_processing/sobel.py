@@ -118,10 +118,10 @@ output_y_cv = imutils.resize(output_y_cv, width = 500)
 output_x = imutils.resize(output_x, width=500)
 output_y = imutils.resize(output_y, width=500)
 
-cv2.imshow("Gradient Magnitude", magnitude)
 cv2.imshow("Gradient X opencv", output_x_cv)
 cv2.imshow("Gradient X", output_x)
 cv2.imshow("Gradient Y opencv", output_y_cv)
 cv2.imshow("Gradient Y", output_y)
+cv2.imshow("Gradient Magnitude", magnitude)
 
 cv2.waitKey(0)
