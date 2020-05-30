@@ -8,8 +8,16 @@ from sobel import sobel
 img = cv2.imread("lenna.png")
 
 # calculates the magnitude over direction histogram
+counter = 0
 def get_histogram(magnitude, theta):
-	hist = np.zeros((9,))
+	global counter 
+	counter += 1
+
+	if(counter == 1):
+		np.savetxt("magnitude.txt", magnitude)
+		np.savetxt("theta.txt", theta)
+
+	hist = np.zeros((9,), dtype=np.float32)
 
 	for column in range(magnitude.shape[0]):
 		for row in range(magnitude.shape[1]):
@@ -17,8 +25,8 @@ def get_histogram(magnitude, theta):
 			angle = theta[column][row]
 
 			# print(angle)
-			lower_bound = int(angle/20) - 1
-			upper_bound = int(angle/20) 
+			lower_bound = int(angle/20)
+			upper_bound = int(angle/20) + 1 
 
 			if(upper_bound == 9):
 				upper_bound = 0
@@ -26,6 +34,8 @@ def get_histogram(magnitude, theta):
 			hist[lower_bound] += (upper_bound * 20 - angle)/20 * mag
 			hist[upper_bound] += (angle - lower_bound * 20)/20 * mag
 
+	if(counter == 1):
+		np.savetxt("hist.txt", hist)
 	return hist
 
 def hog(img, width = 128, height = 128):
@@ -34,7 +44,7 @@ def hog(img, width = 128, height = 128):
 
 	magnitude, theta = sobel(img)
 
-	histograms = np.zeros((int(width/8), int(height/8), 9))
+	histograms = np.zeros((int(width/8), int(height/8), 9), dtype=np.float32)
 	for column in range(int(width/8)):
 		for row in range(int(height/8)):
 			mag_grid = magnitude[column*8:(column+1)*8, row*8:(row+1)*8]
