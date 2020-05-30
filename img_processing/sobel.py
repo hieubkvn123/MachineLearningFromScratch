@@ -5,7 +5,7 @@ import imutils
 import numpy as np 
 import matplotlib.pyplot as plt
 
-img = np.array(cv2.imread("lenna.png"))
+img = np.array(cv2.imread("img/lenna.png"))
 #img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 
@@ -95,24 +95,33 @@ def sobel(img):
 
 			#if(output_x[column][row] != 0):
 			try:
-				angle = (np.arctan(output_y[column][row] / output_x[column][row]) * (180/np.pi))
+				angle = (np.arctan2(output_y[column][row] , output_x[column][row]) * (180/np.pi)) % 180
+				angle = abs(np.round(angle, 0))
 				angle = int(angle)
-				angle = abs(angle)
-				angle = min(angle, 180)
+				#angle = min(angle, 180)
 			except: # to catch division by zero
 				angle = 0
 
 			theta[column, row] = angle
 
-	return magnitude, theta
+	mag_cv, angle_cv = cv2.cartToPolar(output_x, output_y, angleInDegrees=True)
+	angle_cv = angle_cv - 180
+
+	return magnitude, theta, mag_cv, angle_cv
 
 '''
-magnitude, theta = sobel(img)
+magnitude, theta, mag_cv,theta_cv = sobel(img)
+mag_cv = mag_cv.astype(np.uint8)
+print(mag_cv)
+print(magnitude)
+print(theta_cv[10][20])
+print(theta[10][20])
+
 magnitude = imutils.resize(magnitude, width = 500)
 theta = imutils.resize(theta, width=500)
 
-print(theta[np.where(theta > 100)])
-cv2.imshow("Gradient magnitude", magnitude)
+#print(theta[np.where(theta > 100)])
+cv2.imshow("Gradient magnitude", mag_cv)
 cv2.imshow("Gradient direction", theta)
 cv2.waitKey(0)
 '''
