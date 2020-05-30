@@ -57,7 +57,7 @@ def sobel(img):
 	for column in range(blur.shape[0] - 2):
 		for row in range(blur.shape[1] - 2):
 			grid = blur[column : column + 3, row : row + 3]
-			result = int(apply_kernel(grid, G_x))
+			result = apply_kernel(grid, G_x)
 			result = min(result, 255)
 
 			output_x[column, row] = result
@@ -67,7 +67,7 @@ def sobel(img):
 	for row in range(blur.shape[1] - 2):
 		for column in range(blur.shape[0] - 2):
 			grid = blur[column : column + 3, row : row + 3]
-			result = int(apply_kernel(grid, G_y))
+			result = apply_kernel(grid, G_y)
 			result = min(255, result)
 
 			output_y[column, row] = result
@@ -92,23 +92,28 @@ def sobel(img):
 		for row in range(blur.shape[1] - 2):
 			# since the angle is in radian
 			angle = 0
-			try:
-				angle = np.arctan(output_y[column][row] / output_x[column][row]) * (180/np.pi)
-				# print(angle)
-				angle = int(angle)
-				angle = max(angle, 0)
-				angle = min(angle, 180)
-			except: # to catch division by zero
-				angle = 0
+
+			if(output_x[column][row] != 0):
+				try:
+					angle = np.arctan(output_y[column][row] / output_x[column][row]) * (180/np.pi)
+					angle = int(angle)
+					angle = abs(angle)
+					angle = min(angle, 180)
+				except: # to catch division by zero
+					angle = 0
 
 			theta[column, row] = angle
 
 
 	return magnitude, theta
 
-#magnitude, theta = sobel(img)
-#magnitude = imutils.resize(magnitude, width = 500)
-#theta = imutils.resize(theta, width=500)
-#cv2.imshow("Gradient magnitude", magnitude)
-#cv2.imshow("Gradient direction", theta)
-#cv2.waitKey(0)
+'''
+magnitude, theta = sobel(img)
+magnitude = imutils.resize(magnitude, width = 500)
+theta = imutils.resize(theta, width=500)
+
+print(theta[np.where(theta > 100)])
+cv2.imshow("Gradient magnitude", magnitude)
+cv2.imshow("Gradient direction", theta)
+cv2.waitKey(0)
+'''
