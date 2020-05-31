@@ -68,7 +68,7 @@ def sobel(img):
 		for column in range(blur.shape[0] - 2):
 			grid = blur[column : column + 3, row : row + 3]
 			result = apply_kernel(grid, G_y)
-			#result = min(255, result)
+			result = min(255, result)
 
 			output_y[column, row] = result
 
@@ -98,7 +98,7 @@ def sobel(img):
 				angle = (np.arctan2(output_y[column][row] , output_x[column][row]) * (180/np.pi)) % 180
 				angle = abs(np.round(angle, 0))
 				angle = int(angle)
-				#angle = min(angle, 180)
+				angle = min(angle, 180)
 			except: # to catch division by zero
 				angle = 0
 

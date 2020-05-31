@@ -20,15 +20,7 @@ else:
 	img = cv2.imread('img/lenna.png')
 
 # calculates the magnitude over direction histogram
-counter = 0
 def get_histogram(magnitude, theta):
-	global counter 
-	counter += 1
-
-	if(counter == 1):
-		np.savetxt("magnitude.txt", magnitude)
-		np.savetxt("theta.txt", theta)
-
 	hist = np.zeros((9,), dtype=np.float32)
 
 	for column in range(magnitude.shape[0]):
@@ -46,8 +38,6 @@ def get_histogram(magnitude, theta):
 			hist[lower_bound] += (abs(upper_bound * 20 - angle)/20) * mag
 			hist[upper_bound] += (abs(angle - lower_bound * 20)/20) * mag
 
-	if(counter == 1):
-		np.savetxt("hist.txt", hist)
 	return hist
 
 def hog(img, width = 128, height = 128):
@@ -85,16 +75,17 @@ def hog(img, width = 128, height = 128):
 
 	hog = hog.flatten()
 
-	return hog, mag_cv
+	return hog, magnitude
 
 
+'''
 hog, magnitude = hog(img, width=128, height = 128)
 
 # Now we preserve |G| as float to maintain the accuracy 
-magnitude = magnitude.astype(np.uint8)
-magnitude = imutils.resize(magnitude, width = 500)
+magnitude = imutils.resize(magnitude, width = 200)
 
 plt.hist(hog, bins = 10)
 plt.show()
 cv2.imshow("Ahihi", magnitude)
 cv2.waitKey(0)
+'''
