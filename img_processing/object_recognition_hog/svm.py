@@ -3,7 +3,13 @@ import numpy as np
 import pandas as pd 
 
 # Note, this is for binary classification only
-def kernel(x, kernel='linear')
+def kernel(x, kernel='linear', gamma = 0.01):
+	operation = lambda x, y : np.dot(x, y)
+
+	if(kernel == 'rbf'):
+		operation = lambda x, y : -gamma*np.linalg.norm(x-y)
+	if(kernel == 'poly'):
+		operation = lambda x, y : 
 def fit(x, y):
 	if(not isinstance(x, np.ndarray) or not isinstance(y, np.ndarray)):
 		print("[INFO] The input and output must be numpy array ... ")
