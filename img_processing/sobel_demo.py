@@ -4,8 +4,8 @@ import imutils
 import numpy as np 
 import matplotlib.pyplot as plt
 
-img = np.array(cv2.imread("lenna.png"))
-#img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+img = np.array(cv2.imread("img/lenna.png"))
+# img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 G_x = np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
 G_y = G_x.transpose()
