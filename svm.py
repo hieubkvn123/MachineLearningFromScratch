@@ -26,15 +26,15 @@ class_2 = np.array([[4,5],[5,5],[4,6],
 
 # initialize the weight vector
 w = np.array([1,1], dtype=np.float32)
-b = 4.0
+b = 5.0
 x = np.concatenate((class_1, class_2))
 y = np.array([1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1])
 
 # now optimize the weight vector
 losses = list()
 variances = list()
-ITERATIONS = 10000 # max iterations of optimization
-LR = 0.00001
+ITERATIONS = 100000 # max iterations of optimization
+LR = 0.000001
 
 for i in range(1, ITERATIONS + 1):
     # Loop thru the training dataset
@@ -52,8 +52,7 @@ for i in range(1, ITERATIONS + 1):
         else : # misclassification
             for i_ in range(w.shape[0]):
                 w[i_] = w[i_] - LR * (2*1/i*w[i_] - y[j] * x[j][i_])
-
-            b = b - LR * y[j] # update intercept
+                # b = b + LR * y[j] # update intercept
 
         predictions = np.dot(x[j], w) + b
         variance += (y[j] - predictions)**2
