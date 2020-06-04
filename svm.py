@@ -34,7 +34,8 @@ y = np.array([1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1])
 losses = list()
 variances = list()
 ITERATIONS = 100000 # max iterations of optimization
-LR = 0.000001
+LR = 0.000001 # learning rate
+LAMBDA = 0.001 # regularization parameter
 
 for i in range(1, ITERATIONS + 1):
     # Loop thru the training dataset
@@ -47,11 +48,11 @@ for i in range(1, ITERATIONS + 1):
         # when there is no classification
         if(1 - y[j]*(np.dot(w, x[j]) + b) <= 0):
             for i_ in range(w.shape[0]): # update each coefficient
-                w[i_] = w[i_] - LR * (2 * 1/i * w[i_]) # 1/i is the lr decay rate
+                w[i_] = w[i_] - LR * (2 * 1/i * LAMBDA * w[i_]) # 1/i is the lr decay rate
 
         else : # misclassification
             for i_ in range(w.shape[0]):
-                w[i_] = w[i_] - LR * (2*1/i*w[i_] - y[j] * x[j][i_])
+                w[i_] = w[i_] - LR * (2*1/i*LAMBDA*w[i_] - y[j] * x[j][i_])
                 # b = b + LR * y[j] # update intercept
 
         predictions = np.dot(x[j], w) + b
