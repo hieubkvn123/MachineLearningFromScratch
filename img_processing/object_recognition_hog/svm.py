@@ -44,7 +44,7 @@ class_2 = np.array([[4,5],[5,5],[4,6],
 
 # validation data
 class_1_ = np.array([[1.2,2.1],[2.1,2],[1.3,1.7]])
-class_2_ = np.array([[4.4],[3.8,5.4],[4.2,3.4]])
+class_2_ = np.array([[4,4],[3.8,5.4],[4.2,3.4]])
 
 x = np.concatenate((class_1, class_2))
 x_ = np.concatenate((class_1_, class_2_))
@@ -117,11 +117,14 @@ def fit(x, y, iterations=100000, alpha=0.001, l=0.01):
 				if(mse > previous_loss and i != 0):
 					break
 
+				# if the reduction in loss barely matters
+				# we break the process
+				if(previous_loss - mse < 1e-8 and i > 1000):
+					break
+
 				previous_loss = mse
 				print("[INFO] Epoch : " + str(i+1) + " | Loss = " + str(mse))
 
 			print(w)
-
-def predict(x, )
 
 fit(x,y)
