@@ -1,16 +1,46 @@
 import numpy as np 
 import pandas as pd 
 
-from sklearn.preprocessing import LabelEncoder
+### Not gonna use these for long, just for validation purpose ###
+'''
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
+'''
 from sklearn.model_selection import train_test_split
-from svm import KernelSVM 
 
+### NONONONO ###
+
+### self-written machine learning, kinda slow but good enuff ###
+from svm import KernelSVM 
 from pca import pca
 
-le = LabelEncoder()
-ss = StandardScaler()
+def accuracy_score(predictions, labels):
+	accurate_count = 0
+
+	for i in range(len(predictions)):
+		if(predictions[i] == labels[i]):
+			accurate_count += 1
+
+	accuracy = accurate_count / len(predictions)
+	accuracy = "{0:.2f}".format(accuracy)
+
+	return accuracy
+
+def standardize(x):
+	if(not isinstance(x, np.ndarray)):
+		print("[INFO] x must be a vector ... ")
+		return None
+	else:
+		if(len(x.shape) != 1):
+			print('[INFO] x must be a flat vector ... ')
+			return None 
+		else:
+			v_length = np.linalg.norm(x)
+			x_std = x/v_length
+
+			return x_std
+
+# ss = StandardScaler()
 
 data_url = 'https://raw.githubusercontent.com/hieubkvn123/data/master/bank_risk.csv'
 raw_data = pd.read_csv(data_url, header = 0).dropna()
@@ -23,7 +53,14 @@ raw_data['outcome'].replace(['Y', 'N'], [1,-1], inplace=True)
 data = raw_data[['Gender', 'Married', 'Education', 'ApplicantIncome', 'LoanAmount', 'Credit_History']]
 
 x = data.to_numpy()
-x = ss.fit_transform(x)
+# x = ss.fit_transform(x)
+
+print("[INFO] Standardizing input vectors ... ")
+for i in range(x.shape[0]):
+	# standardize each vector
+	x[i] = standardize(x[i])
+
+print("[INFO] Implementing principal components analysis ... ")
 x = pca(x)
 y = raw_data['outcome'].to_numpy()
 
