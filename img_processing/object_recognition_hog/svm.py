@@ -110,6 +110,7 @@ class KernelSVM:
 				# loop thru the training iterations
 				previous_loss = 0
 				for i in range(iterations) :
+					# alpha = alpha * (decay_rate * 1/(i+1))
 					predictions = np.zeros((y.shape[0], ))
 					# loop thru all the data
 					for j in range(f_i.shape[0]):
@@ -141,7 +142,7 @@ class KernelSVM:
 						break
 
 					previous_loss = mse
-					print("[INFO] Epoch : " + str(i+1) + " | Loss = " + str(mse))
+					print("[INFO] Epoch : " + str(i+1) + " | Loss = " + "{0:.2f}".format(mse))
 
 	def predict(self, x):
 		predictions = []
