@@ -3,6 +3,8 @@ import math
 import numpy as np 
 import pandas as pd 
 
+from sklearn.metrics import accuracy_score
+
 # Note, this is for binary classification only
 def kernel(kernel='linear', gamma = 0.01, r=1/2, d=2):
 	'''
@@ -15,7 +17,7 @@ def kernel(kernel='linear', gamma = 0.01, r=1/2, d=2):
 	operation = lambda x, y : np.dot(x, y)
 
 	if(kernel == 'rbf'):
-		operation = lambda x, y : -gamma*np.linalg.norm(x-y)
+		operation = lambda x, y : -gamma*(np.linalg.norm(x-y)**2)
 	if(kernel == 'poly'):
 		operation = lambda x, y : (np.dot(x,y) + r) ** d 
 
@@ -49,82 +51,121 @@ class_2_ = np.array([[4,4],[3.8,5.4],[4.2,3.4]])
 x = np.concatenate((class_1, class_2))
 x_ = np.concatenate((class_1_, class_2_))
 y = np.array([1,1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1])
+y_ = np.array([1,1,1,-1,-1,-1])
 
-def fit(x, y, iterations=100000, alpha=0.001, l=0.01):
-	'''
-		- iterations is the max number of training iterations
-		- alpha is the learning rate
-		- l is the regularization parameter
-	'''
-	bias = 10.0
+# let's go a little bit object oriented shall we
+class KernelSVM:
+	def __init__(self):
+		self.x = None 
+		self.y = None 
+		self.w = None
+		self.kernel = None
 
-	if(not isinstance(x, np.ndarray) or not isinstance(y, np.ndarray)):
-		print("[INFO] The input and output must be numpy array ... ")
-		return None
-	else:
-		# check if the input is of right dimension
-		if(len(x.shape) != 2 or len(y.shape) != 1):
-			print("[INFO] Input and output are of wrong shape ...")
+	def fit(self,x, y, iterations=100000, alpha=0.0001, l=0.01):
+		'''
+			- iterations is the max number of training iterations
+			- alpha is the learning rate
+			- l is the regularization parameter
+		'''
+
+		# just create a copy for inference purpose
+		self.x = x
+		self.y = y
+
+		bias = 10.0
+
+		if(not isinstance(x, np.ndarray) or not isinstance(y, np.ndarray)):
+			print("[INFO] The input and output must be numpy array ... ")
+			return None
 		else:
-			# svm is optimized based on hinge loss
-			# hinge(x,w) = Max(0, 1 - y * <x,w>)
-			# we need to optimize 2/||w|| -> the regularized loss is 
-			# L = summation(Max(0, 1 - y * <x,w>)) + ||w||**2/2
-			K = kernel(kernel='rbf')
+			# check if the input is of right dimension
+			if(len(x.shape) != 2 or len(y.shape) != 1):
+				print("[INFO] Input and output are of wrong shape ...")
+				return None
+			else:
+				# svm is optimized based on hinge loss
+				# hinge(x,w) = Max(0, 1 - y * <x,w>)
+				# we need to optimize 2/||w|| -> the regularized loss is 
+				# L = summation(Max(0, 1 - y * <x,w>)) + ||w||**2/2
+				K = kernel(kernel='rbf')
+				self.kernel = K
 
-			# first, calculate all f_i vectors from the kernel
-			dataset_size = x.shape[0]
-			f_i = np.zeros((dataset_size, dataset_size))
+				# first, calculate all f_i vectors from the kernel
+				dataset_size = x.shape[0]
+				f_i = np.zeros((dataset_size, dataset_size))
 
-			# construct f_i which is a matrix of kernelized inputs
-			for i in range(dataset_size):
-				f = np.zeros((dataset_size,))
-				for j in range(dataset_size):
-					f[j] = K(x[i], x[j])
+				# construct f_i which is a matrix of kernelized inputs
+				for i in range(dataset_size):
+					f = np.zeros((dataset_size,))
+					for j in range(dataset_size):
+						f[j] = K(x[i], x[j])
 
-				f_i[i] = f 
+					f_i[i] = f 
 
-			# print(f_i)
+				# print(f_i)
 
-			# now all we have to do is applying svm on f_1 and y
-			w = np.ones((dataset_size, ), dtype=np.float32) # a vector with same size as f_i input vectors
+				# now all we have to do is applying svm on f_1 and y
+				self.w = np.ones((dataset_size, ), dtype=np.float32) # a vector with same size as f_i input vectors
 
-			# loop thru the training iterations
-			previous_loss = 0
-			for i in range(iterations) :
-				predictions = np.zeros((y.shape[0], ))
-				# loop thru all the data
-				for j in range(f_i.shape[0]):
-					f_i_ = f_i[j]
-					prediction = np.dot(w, f_i_) + bias 
-					predictions[j] = prediction
+				# loop thru the training iterations
+				previous_loss = 0
+				for i in range(iterations) :
+					predictions = np.zeros((y.shape[0], ))
+					# loop thru all the data
+					for j in range(f_i.shape[0]):
+						f_i_ = f_i[j]
+						prediction = np.dot(self.w, f_i_) + bias 
+						predictions[j] = prediction
 
-					# check if this is a mis-classification case
-					if(1 - y[j] * (np.dot(w, f_i_) + bias) > 0): # misclassification
-						# loop thru the elements in the weight vector
-						for i_ in range(w.shape[0]):
-							w[i_] = w[i_] - alpha * (-y[j] * f_i_[i_] + l * w[i_])
+						# check if this is a mis-classification case
+						if(1 - y[j] * (np.dot(self.w, f_i_) + bias) > 0): # misclassification
+							# loop thru the elements in the weight vector
+							for i_ in range(self.w.shape[0]):
+								self.w[i_] = self.w[i_] - alpha * (-y[j] * f_i_[i_] + l * self.w[i_])
 
-						bias = alpha - y[j] * alpha
+							bias = bias + y[j] * alpha
 
-					else: # no misclassification occured
-						# loop thru the elements of the weight vector again 
-						for i_ in range(w.shape[0]):
-							w[i_] = w[i_] - alpha * (l*w[i_])
+						else: # no misclassification occured
+							# loop thru the elements of the weight vector again 
+							for i_ in range(self.w.shape[0]):
+								self.w[i_] = self.w[i_] - alpha * (l*self.w[i_])
 
-				mse = loss(predictions, y)
+					mse = loss(predictions, y)
 
-				if(mse > previous_loss and i != 0):
-					break
+					if(mse > previous_loss and i > 10000):
+						break
 
-				# if the reduction in loss barely matters
-				# we break the process
-				if(previous_loss - mse < 1e-8 and i > 1000):
-					break
+					# if the reduction in loss barely matters
+					# we break the process
+					if(previous_loss - mse < 1e-8 and i > 10000):
+						break
 
-				previous_loss = mse
-				print("[INFO] Epoch : " + str(i+1) + " | Loss = " + str(mse))
+					previous_loss = mse
+					print("[INFO] Epoch : " + str(i+1) + " | Loss = " + str(mse))
 
-			print(w)
+	def predict(self, x):
+		predictions = []
 
-fit(x,y)
+		# for each of the new data
+		for i in range(x.shape[0]):
+			# loop thru the training dataset
+			prediction = 0
+			for j in range(self.x.shape[0]):
+				prediction += self.y[j] * self.w[j] * self.kernel(x[i], self.x[j])
+
+			if(prediction > 0):
+				predictions.append(1)
+			else:
+				predictions.append(-1)
+
+		return predictions 
+
+
+svm = KernelSVM()
+svm.fit(x,y)
+
+predictions = svm.predict(x_)
+# print(predictions)
+
+# time to make prediction to see if it is true
+print("[INFO] Accuracy = " + str(accuracy_score(predictions, y_)))
