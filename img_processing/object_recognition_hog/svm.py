@@ -34,7 +34,7 @@ def loss(predictions, labels):
 		for j in range(predictions.shape[0]): # or labels.shape[0]
 			loss += (predictions[j] - labels[j]) ** 2
 
-		return math.sqrt(loss)
+		return 1/predictions.shape[0] * math.sqrt(loss)
 
 class_1 = np.array([[2,3], [1,2], [2.5, 3.5],
                     [1.5, 2.5], [2,2], [2.5,2.5],
@@ -154,10 +154,7 @@ class KernelSVM:
 			for j in range(self.x.shape[0]):
 				prediction += self.y[j] * self.w[j] * self.kernel(x[i], self.x[j])
 
-			if(prediction > 0):
-				predictions.append(1)
-			else:
-				predictions.append(-1)
+			predictions.append(np.sign(prediction))
 
 		return predictions 
 
