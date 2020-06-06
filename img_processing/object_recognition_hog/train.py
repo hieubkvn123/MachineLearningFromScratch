@@ -92,7 +92,7 @@ print("[INFO] Preparing training phase ... ")
 model = KernelSVM()
 
 x_train, x_test, y_train, y_test = train_test_split(hog_embeddings, labels, test_size = 0.2)
-model.fit(x_train, y_train, iterations=10000)
+model.fit(x_train, y_train, iterations=200, alpha = 0.1)
 
 
 ### Now validate to model ### 
