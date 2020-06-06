@@ -59,6 +59,7 @@ class KernelSVM:
 		self.x = None 
 		self.y = None 
 		self.w = None
+		self.bias = None
 		self.kernel = None
 
 	def fit(self,x, y, iterations=100000, alpha=0.0001, l=0.01):
@@ -143,6 +144,7 @@ class KernelSVM:
 
 					previous_loss = mse
 					print("[INFO] Epoch : " + str(i+1) + " | Loss = " + "{0:.2f}".format(mse))
+		self.bias = bias
 
 	def predict(self, x):
 		predictions = []
@@ -154,11 +156,14 @@ class KernelSVM:
 			for j in range(self.x.shape[0]):
 				prediction += self.y[j] * self.w[j] * self.kernel(x[i], self.x[j])
 
+			prediction = prediction + self.bias
+
 			predictions.append(np.sign(prediction))
 
 		return predictions 
 
 
+'''
 svm = KernelSVM()
 svm.fit(x,y)
 
@@ -167,3 +172,4 @@ predictions = svm.predict(x_)
 
 # time to make prediction to see if it is true
 print("[INFO] Accuracy = " + str(accuracy_score(predictions, y_)))
+'''
