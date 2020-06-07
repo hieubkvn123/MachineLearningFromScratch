@@ -19,6 +19,9 @@ DATA_DIR = 'data/'
 hog_embeddings = []
 labels = []
 
+hog_embeddings_val = []
+labels_val = []
+
 def train_test_split(x, y, test_size=0.3):
 	n_test = int(x.shape[0] * test_size)
 	n_train = x.shape[0] - n_test 
@@ -71,7 +74,6 @@ if(not os.path.exists("hog_embeddings.pickle") or not os.path.exists("labels.pic
 
 				hog_embeddings.append(hog_emb)
 
-
 	pca = PCA(n_components = 2)
 	print("-----------------------------------------------------------")
 	print("[INFO] Implementing Principal component analysis ... ")
@@ -86,6 +88,14 @@ if(not os.path.exists("hog_embeddings.pickle") or not os.path.exists("labels.pic
 else:
 	hog_embeddings = pickle.load(open("hog_embeddings.pickle", "rb"))
 	labels = pickle.load(open("labels.pickle", "rb"))
+
+
+VAL_DIR = 'validations/'
+if(not os.path.exists("hog_embeddings_val.pickle") or not os.path.exists("labels_val.pickle")):
+	for (dir, dirs, files) in os.walk(VAL_DIR):
+		if(dir != VAL_DIR):
+			for file in files:
+				labels = dir.split("/")[1]
 
 print("-----------------------------------------------------------")
 print("[INFO] Preparing training phase ... ")

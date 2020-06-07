@@ -9,7 +9,7 @@ class PCA(object):
 	def __init__(self):
 		self.top_eig_vecs = None 
 
-	def fit(x, n_components=2):
+	def fit(self, x, n_components=2):
 		if(isinstance(x, np.ndarray)):
 			if(len(x.shape) != 2):
 				# by now just default that the input is a matrix
