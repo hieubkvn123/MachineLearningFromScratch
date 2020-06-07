@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 
 ### self-written machine learning, kinda slow but good enuff ###
 from svm import KernelSVM 
-from pca import pca
+from pca import PCA
 
 # now the moment of truth, comparing to sklearn
 from sklearn.svm import SVC 
@@ -83,7 +83,8 @@ for i in range(x.shape[0]):
 	x[i] = standardize(x[i])
 
 print("[INFO] Implementing principal components analysis ... ")
-x = pca(x)
+pca = PCA()
+x = pca.fit(x)
 y = raw_data['outcome'].to_numpy()
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
