@@ -38,7 +38,7 @@ class PCA(object):
 			print("[INFO] The input matrix must be a numpy ndarray ... ")
 			return None 
 
-	def transform(x):
+	def transform(self, x):
 		if(isinstance(x, np.ndarray)):
 			if(x.shape[1] != self.top_eig_vecs.shape[1]):
 				print("[INFO] Input must be of shape (n, " + str(self.top_eig_vecs.shape[1]) + ") ... ")
