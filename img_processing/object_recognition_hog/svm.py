@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 
 # Note, this is for binary classification only
-def kernel(kernel='linear', gamma = 0.01, r=1/2, d=2):
+def kernel(kernel='linear', gamma = 0.0001, r=1/2, d=2):
 	'''
 		gamma : 1/2*sigma**2 for the gaussian kernel
 		r : the bias for polynomial kernel

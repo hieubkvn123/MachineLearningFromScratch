@@ -24,6 +24,6 @@ class NeuralNet(object):
 			return w, m_t, v_t 
 
 		if(algo == 'adam'):
-			operation = lambda g,  
+			operation = lambda g, t  
 
 	def fit(self, x, y, lr=1e-3, optimizer='sgd'):

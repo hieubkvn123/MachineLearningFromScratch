@@ -54,7 +54,7 @@ def accuracy_score(predictions, labels):
 
 	return accuracy
 
-pca = PCA(n_components = 2)
+pca = PCA(n_components = 4)
 print("[INFO] Reading training data ... ")
 print("-------------------------------------------------------------")
 
@@ -137,7 +137,7 @@ model = KernelSVM()
 
 
 ### Training phase ###
-model.fit(hog_embeddings, labels, iterations=15000, alpha = 0.001)
+model.fit(hog_embeddings, labels, iterations=15000, alpha = 0.0001)
 
 
 ### Now validate to model ### 
