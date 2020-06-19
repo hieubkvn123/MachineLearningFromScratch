@@ -6,3 +6,4 @@ matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 
 # this is naive bayes implementation
+

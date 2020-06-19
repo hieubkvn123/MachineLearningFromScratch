@@ -1,3 +1,5 @@
+import os
+import cv2
 import numpy as np 
 import pandas as pd 
 
@@ -22,6 +24,7 @@ class NeuralNet(object):
 			w = m_t_hat/(math.sqrt(v_t_hat) + 1e-08)
 
 			return w, m_t, v_t 
+                def sgd(g, w, alpha):
 
 		if(algo == 'adam'):
 			operation = lambda g, t  
