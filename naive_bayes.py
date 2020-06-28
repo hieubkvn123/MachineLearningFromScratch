@@ -1,9 +1,4 @@
 import numpy as np
-import pandas as pd
-
-import matplotlib
-matplotlib.use("TkAgg")
-import matplotlib.pyplot as plt
 
 # this is naive bayes implementation
 class_1 = np.array([[1, 2, 3], [1, 1, 2], [2, 2, 2],
@@ -67,7 +62,7 @@ class NaiveBayes(object):
         else:
             print("[INFO] Input and output must have the same length ...")
             
-    def predict(self, x):
+    def predict(self, x, probability=True):
         if(len(x.shape) < 2):
             print("[INFO] Input data must be an array of vectors ... ")
             return None
@@ -77,18 +72,24 @@ class NaiveBayes(object):
             return None
 
         outputs = list()
+        max_probabilities = list()
 
         for i in range(x.shape[0]):
             probabilities = list()
-            for y_i in self.y:
+            for y_i in np.unique(self.y):
                 p = self.get_probability_y(y_i) * self.get_probability_x_given_y(x[i], y_i)
                 probabilities.append(p)
 
             class_ = self.y[np.argmax(probabilities)]
+            max_probability = probabilities[np.argmax(probabilities)] / sum(probabilities)
+
+            max_probabilities.append(max_probability)
             outputs.append(class_)
 
-        return outputs
-
+        if(probability):
+            return outputs, max_probabilities
+        else:
+            return outputs
 
 def accuracy_score(y_test, y):
     correct = 0
@@ -101,8 +102,13 @@ def accuracy_score(y_test, y):
     return "{0:.2f}".format(accuracy)
 
 nb = NaiveBayes()
-nb.fit(x, y)
-output = nb.predict(x_test)
+nb.fit(x,y)
+outputs, probabilities = nb.predict(x_test)
 
-accuracy = accuracy_score(output, y_test)
+for p, y_i in zip(probabilities, outputs):
+    print("Predicted class : " + str(y_i) + " | Probability = {0:.2f}".format(p))
+
+
+accuracy = accuracy_score(outputs, y_test)
+print("----------------------------------------------------------")
 print("[INFO] Test accuracy : " + str(accuracy))
