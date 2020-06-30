@@ -80,7 +80,7 @@ class NaiveBayes(object):
                 p = self.get_probability_y(y_i) * self.get_probability_x_given_y(x[i], y_i)
                 probabilities.append(p)
 
-            class_ = self.y[np.argmax(probabilities)]
+            class_ = np.unique(self.y)[np.argmax(probabilities)]
             max_probability = probabilities[np.argmax(probabilities)] / sum(probabilities)
 
             max_probabilities.append(max_probability)
