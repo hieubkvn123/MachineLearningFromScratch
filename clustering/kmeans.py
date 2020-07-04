@@ -65,7 +65,7 @@ class KMeans(object):
 		return distance_matrix
 
 
-	def __train(self, iterations = 1000): 
+	def __train(self, iterations = 100): 
 		### For each observation in the dataset ###
 		### Check what centroid is the closest to the data point ###
 		### termination condition : if the labels does not change ###
@@ -79,10 +79,6 @@ class KMeans(object):
 				distance_matrix = self.__dist_mat(self.x[i])
 				label = np.argmax(distance_matrix)
 				self.y[i] = label
-
-			if(np.array_equal(previous_labels, self.y)):
-				print("[INFO] KMeans converged at iteration : %d" % (i_ + 1))
-				break ### break training process ### 
 
 			### now update the centroids ###
 			for cluster in range(self.n_clusters):
