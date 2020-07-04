@@ -27,7 +27,7 @@ class GaussianNB(object):
 		# self.class_std = []
 
 	def get_gaussian_probability(self, x_i, mean_k_i, std_k_i):
-		a = 1/(2 * std_k_i**2 * np.pi)
+		a = 1/np.sqrt(2 * std_k_i**2 * np.pi)
 		b = np.exp(-1/(2 * std_k_i**2) * (x_i - mean_k_i) ** 2)
 
 		return a * b 
