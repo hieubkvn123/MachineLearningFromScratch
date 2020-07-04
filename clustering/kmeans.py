@@ -76,9 +76,16 @@ class KMeans(object):
 			previous_labels = self.y.copy()
 			for i in range(self.N):
 				### here we are gonna figure out each datapoint belong to which class ###
+				### by getting the min distance to centroids ###
 				distance_matrix = self.__dist_mat(self.x[i])
-				label = np.argmax(distance_matrix)
+				label = np.argmin(distance_matrix)
 				self.y[i] = label
+
+			if((previous_labels == self.y).all()):
+				### If we are not at the first iteration ###
+				if(i_ > 0):
+					print("[INFO] KMeans converged at iteration : %d" % (i_ + 1))
+					break ### break training process ### 
 
 			### now update the centroids ###
 			for cluster in range(self.n_clusters):
