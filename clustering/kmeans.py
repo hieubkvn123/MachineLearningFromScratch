@@ -28,7 +28,7 @@ class KMeans(object):
 		self.x = list()
 		self.y = list() ### empty ###
 
-	def fit(self, x):
+	def fit(self, x, transform=True):
 		### Some basic checking ###
 		if(len(x.shape) < 2):
 			raise Exception("Input must be an array of vectors ... ")
@@ -43,7 +43,18 @@ class KMeans(object):
 		self.__initCluster()
 		self.__train()
 
-		return self.y
+		if(transform):
+			return self.y
+
+	def transform(self, x):
+		### simply get the dist matrix and get the smallest ###
+		labels = np.zeros((x.shape[0], ))
+		for i in range(x.shape[0]):	
+			dismat = self.__dist_mat(x[i])
+			label = np.argmin(dismat)
+			labels[i] = label 
+
+		return labels 
 
 	### Generate the centroids for k clusters ###
 	def __initCluster(self):
@@ -97,12 +108,26 @@ class KMeans(object):
 
 kmeans = KMeans(n_clusters = 2)
 labels = kmeans.fit(x)
+labels_test = kmeans.transform(x_test)
 
-axes = plt.axes(projection='3d')
+### create one figure and two 3D subplots ###
+fig = plt.figure(figsize=plt.figaspect(0.5))
+axes = fig.add_subplot(1, 2, 1, projection='3d')
+axes_ = fig.add_subplot(1, 2, 2, projection='3d')
+
+axes.set_title("Training data result")
+axes_.set_title("Testing data result")
+
 ### Visualizing the results ###
 for cluster in np.unique(labels):
 	data = x[np.where(labels == cluster)]
 
-	axes.scatter3D(data[:,0], data[:,1], data[:,2], alpha=0.8)
+	axes.scatter3D(data[:,0], data[:,1], data[:,2], alpha=0.8, label=("class %d" % cluster))
 
+for cluster in np.unique(labels_test):
+	data = x_test[np.where(labels_test == cluster)]
+
+	axes_.scatter3D(data[:,0], data[:,1], data[:,2], alpha=0.8, label=("class %d" % cluster))
+
+plt.legend()
 plt.show()
