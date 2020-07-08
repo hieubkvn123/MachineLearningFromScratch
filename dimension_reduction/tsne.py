@@ -1,5 +1,6 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
+from sklearn.manifold import TSNE as SklearnTSNE
 
 ### Loading in some sample data ### 
 class_1 = np.array([[1, 2, 3], [1, 1, 2], [2, 2, 2],
@@ -35,7 +36,7 @@ class TSNE(object):
 		### initialize y because we are going to optimize ###
 		### the kullback leiber divergence with respect to y_i ###
 		self.y = np.array(np.random.rand(self.N, self.n_features))
-		self.__train(iterations=100, alpha = 1e-2)
+		self.__train(iterations=100, alpha = 0.1)
 
 		return self.y
 	### First step in TSNE is to calculate (for each observation) ###
@@ -87,17 +88,16 @@ class TSNE(object):
 		numerator = kernel(y_i, y_j)
 		denominator = 0
 
-		for k in range(self.x.shape[0]):
+		for k, y_k in enumerate(self.y):
 			if(k == i):
 				continue
 
-			y_k = self.y[k]
 			denominator += kernel(y_i, y_k)
 
 		return numerator / denominator
 
 	### Now the training phase ###
-	def __train(self, iterations = 1000, alpha = 1e-2):
+	def __train(self, iterations = 10, alpha = 200):
 		### gonna follow basic gradient descent ###
 		for i_ in range(iterations):
 			kl = 0
@@ -113,7 +113,7 @@ class TSNE(object):
 					q_ij = self.__q_ij(i, j)
 
 					kl += p_ij * np.log(p_ij / q_ij)
-					sum_value += (p_ij - q_ij) * (self.y[i] - self.y[j]) * ((1 + np.linalg.norm(self.y[i] - self.y[j]) ** 2 )**(-1))
+					sum_value += q_ij*(p_ij - q_ij) * (self.y[i] - self.y[j]) * ((1 + np.linalg.norm(self.y[i] - self.y[j]) ** 2 )**(-1))
 
 			
 				self.y[i] -= alpha * sum_value 
@@ -123,9 +123,25 @@ class TSNE(object):
 tsne = TSNE(n_features = 2)
 results = tsne.fit(x)
 
+sklearn_tsne = SklearnTSNE(n_components = 2, perplexity=5)
+results_sk = sklearn_tsne.fit_transform(x)
+
 class_1 = results[:9]
 class_2 = results[9:]
 
-plt.scatter(class_1[:, 0], class_1[:, 1], color ='green')
-plt.scatter(class_2[:, 0], class_2[:, 1], color = 'red')
+print(class_1, class_2)
+
+class_1_sk = results_sk[:9]
+class_2_sk = results_sk[9:]
+
+print(class_1_sk, class_2_sk)
+
+fig, ax = plt.subplots(1,2, figsize=(10,5))
+
+ax[0].scatter(class_1[:, 0], class_1[:, 1], color ='green')
+ax[0].scatter(class_2[:, 0], class_2[:, 1], color = 'red')
+
+ax[1].scatter(class_1_sk[:, 0], class_1_sk[:, 1], color ='green')
+ax[1].scatter(class_2_sk[:, 0], class_2_sk[:, 1], color = 'red')
+
 plt.show()
