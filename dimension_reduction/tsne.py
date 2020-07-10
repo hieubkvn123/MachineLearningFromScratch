@@ -22,7 +22,6 @@ class TSNE(object):
 		self.x = list()
 		self.y = list() ### results of predictions ###
 		self.N = 0
-		self.feat_dim = 2
 
 	def fit(self, x):
 		### Some simple checking ###
@@ -31,7 +30,6 @@ class TSNE(object):
 
 		self.x = x
 		self.N = x.shape[0]
-		self.feat_dim = x.shape[1]
 
 		### initialize y because we are going to optimize ###
 		### the kullback leiber divergence with respect to y_i ###
