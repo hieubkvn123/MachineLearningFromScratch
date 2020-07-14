@@ -30,12 +30,12 @@ def iou_of(boxes0, boxes1, eps=1e-5):
 	Returns:
 		iou (N): IoU values.
 	"""
-	overlap_left_top = np.maximum(boxes0[..., :2], boxes1[..., :2])
-	overlap_right_bottom = np.minimum(boxes0[..., 2:], boxes1[..., 2:])
+	overlap_left_top = np.maximum(boxes0[:, :2], boxes1[:, :2]) # get the top left of the overlapped area (max([startX1, startY1], [startX2, startY2]))
+	overlap_right_bottom = np.minimum(boxes0[:, 2:], boxes1[:, 2:])# get the bottom right of the overlapped area (min([endX1, endY1], [endX2, endY2]))
 
 	overlap_area = area_of(overlap_left_top, overlap_right_bottom)
-	area0 = area_of(boxes0[..., :2], boxes0[..., 2:])
-	area1 = area_of(boxes1[..., :2], boxes1[..., 2:])
+	area0 = area_of(boxes0[:, :2], boxes0[:, 2:])
+	area1 = area_of(boxes1[:, :2], boxes1[:, 2:])
 	return overlap_area / (area0 + area1 - overlap_area + eps)
 
 def hard_nms(box_scores, iou_threshold, top_k=-1, candidate_size=200):
@@ -54,7 +54,7 @@ def hard_nms(box_scores, iou_threshold, top_k=-1, candidate_size=200):
 	boxes = box_scores[:, :4]
 	picked = []
 	indexes = np.argsort(scores)
-	indexes = indexes[-candidate_size:]
+	indexes = indexes[-candidate_size:] 
 	while len(indexes) > 0:
 		current = indexes[-1]
 		picked.append(current)
