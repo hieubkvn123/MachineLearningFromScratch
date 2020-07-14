@@ -103,7 +103,7 @@ def predict(width, height, confidences, boxes, prob_threshold, iou_threshold=0.5
 
 	subset_boxes = boxes[mask, :]
 	box_probs = np.concatenate([subset_boxes, probs.reshape(-1, 1)], axis=1)
-	print(box_probs)
+	# print(box_probs)
 	box_probs = hard_nms(box_probs,
 	   iou_threshold=iou_threshold,
 	   top_k=top_k,
