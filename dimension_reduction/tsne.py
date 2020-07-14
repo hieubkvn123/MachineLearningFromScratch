@@ -111,7 +111,7 @@ class TSNE(object):
 					q_ij = self.__q_ij(i, j)
 
 					kl += p_ij * np.log(p_ij / q_ij)
-					sum_value += q_ij*(p_ij - q_ij) * (self.y[i] - self.y[j]) * ((1 + np.linalg.norm(self.y[i] - self.y[j]) ** 2 )**(-1))
+					sum_value += 4*(p_ij - q_ij) * (self.y[i] - self.y[j]) * ((1 + np.linalg.norm(self.y[i] - self.y[j]) ** 2 )**(-1))
 
 			
 				self.y[i] -= alpha * sum_value 
