@@ -54,11 +54,11 @@ def hard_nms(box_scores, iou_threshold, top_k=-1, candidate_size=200):
 	boxes = box_scores[:, :4]
 	picked = []
 	indexes = np.argsort(scores)
-	indexes = indexes[-candidate_size:] 
+	indexes = indexes[-candidate_size:]
 	while len(indexes) > 0:
 		current = indexes[-1]
 		picked.append(current)
-		if 0 < top_k == len(picked) or len(indexes) == 1:
+		if top_k == len(picked) or len(indexes) == 1:
 			break
 		current_box = boxes[current, :]
 		indexes = indexes[:-1]
@@ -114,10 +114,8 @@ def predict(width, height, confidences, boxes, prob_threshold, iou_threshold=0.5
 	if not picked_box_probs:
 		return np.array([]), np.array([]), np.array([])
 	picked_box_probs = np.concatenate(picked_box_probs)
-	picked_box_probs[:, 0] *= width
-	picked_box_probs[:, 1] *= height
-	picked_box_probs[:, 2] *= width
-	picked_box_probs[:, 3] *= height
+	picked_box_probs[:, :4] *= np.array([width, height, width, height])
+
 	return picked_box_probs[:, :4].astype(np.int32), np.array(picked_labels), picked_box_probs[:, 4]
 
 video_capture = cv2.VideoCapture(0)
