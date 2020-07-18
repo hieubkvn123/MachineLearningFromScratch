@@ -20,10 +20,11 @@ y_train = np.array([1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0])
 #b = dense(a)
 
 net = NeuralNet(input_dim=x_train.shape[1])
+net.add_layer(Dense(8))
 net.add_layer(Dense(4))
-net.add_layer(Dense(2))
+net.add_layer(Dense(2, activation='softmax'))
 
-optimizer = SGD(learning_rate=0.000000001)
+optimizer = SGD(learning_rate=0.1)
 loss = MSE()
 net.compile(optimizer, loss)
 net.fit(x_train, y_train)

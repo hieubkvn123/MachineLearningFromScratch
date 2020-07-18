@@ -51,7 +51,7 @@ class NeuralNet(object):
         self.optimizer = optimizer
         self.loss = loss
     
-    def fit(self,x ,y, epochs=1000000):
+    def fit(self,x ,y, epochs=10):
         if(not isinstance(x, np.ndarray) or not isinstance(y, np.ndarray)):
             raise Exception("Either input or label are not numpy array")
 
@@ -64,6 +64,7 @@ class NeuralNet(object):
             self.history['error'][0] = self.history['error'][1]
             self.history['error'][1] = error
 
+            # print(error.mean())
             print("[INFO] Epoch %d, Loss = %.2f" % ((i+1), error))
 
             for i, layer in enumerate(self.layers):

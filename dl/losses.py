@@ -32,7 +32,9 @@ class MSE(Loss):
         if(len(y_true.shape) < 2):
             y_true = self.__to_categorical__(y_true)
 
+        # print(y_true)
         loss = (y_true - y_pred) ** 2
         loss = loss.mean()
 
         return loss
+

@@ -25,11 +25,16 @@ class SGD(Optimizer):
         error_t_0 = error[0]
         error_t_1 = error[1]
 
+        # print(error)
+
         theta_t_0 = thetas[0]
         theta_t_1 = thetas[1]
 
-        # print(error_t_0, error_t_1, theta_t_0, theta_t_1)
+        #print(error_t_0, error_t_1, theta_t_0, theta_t_1)
         gradient = (error_t_1 - error_t_0) / (theta_t_1 - theta_t_0)
+        gradient = np.clip(gradient, 1e-8, 1e8)
+        # print(error_t_0, error_t_1)
+        gradient = gradient.mean(axis=0, keepdims=True)
         # print(gradient)
 
         return gradient
