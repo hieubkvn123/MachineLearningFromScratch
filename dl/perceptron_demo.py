@@ -1,20 +1,22 @@
 import numpy as np
 import time
 
+### Compare to tensorflow ###
+import tensorflow as tf
+
 class_1 = np.array([[2,3], [1,2], [2.5, 3.5],
                     [1.5, 2.5], [2,2], [2.5,2.5],
                     [1.5,3],[2.5,1],[1,1]])
 
-class_2 = np.array([[4,5],[5,5],[4,6],
-                    [4.5,5.5],[5.5,5.5],[6,6],
-                    [5,4],[5,6],[6,5]])
+class_2 = np.array([[4,7],[7,5],[7,6],
+                    [4.5,6.5],[6.5,5.5],[6,6],
+                    [5,4],[5,6],[6,7]])
 
 # initialize the weight vector
 w = np.array([1,1], dtype=np.float32)
 b = 5.0
-x = np.concatenate((class_1, class_2))
-y = np.array([1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0])
-
+x = np.array([[0,1,0],[0,0,1],[1,0,0],[1,1,0],[1,1,1]])
+y = np.array([1,0,0,1,1])
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
@@ -22,10 +24,17 @@ def sigmoid(x):
 def sigmoid_der(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
+
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
+
+
 def mse(y, y_):
     N = y.shape[0]
 
-    loss = 1/N * (y - y_) ** 2
+    loss = (y - y_) ** 2
 
     return loss
 
@@ -61,25 +70,28 @@ class Perceptron(object):
 
         self.weights = np.random.rand(self.x.shape[1], self.y.shape[1])
 
-        for i in range(1000):
-            feed_forwarded_input = self.x @ self.weights
+        previous_loss = 101
+        for i in range(100000):
+            feed_forwarded_input = self.x @ self.weights + self.bias
             output = sigmoid(feed_forwarded_input)
 
-            l = mse(self.y, output)
+            ### Early stops if previous loss is smaller ###
+            l = np.sum(mse(self.y, output))
+            if(previous_loss < l):
+                break
+            previous_loss = l
+
             d_1 = gradient(self.y, output, loss=mse)
             d_2 = sigmoid_der(output)
             d_3 = self.x
+            g = d_3.transpose() @  np.multiply( d_1 , d_2 )
+            self.weights -= self.lr * g
 
-            g = d_1 * d_2 * d_3
-
-            for j in range(g.shape[0]):
-                for i_ in range(self.weights.shape[0]):
-                    self.weights[i_] -= self.lr * g[j][i_]
 
             print('[INFO] Epoch %d, Loss = %.2f ...' % ((i+1),np.sum(l))) 
     
     def predict(self, x):
-        return x @ self.weights
+        return sigmoid(x @ self.weights + self.bias)
 
     def __str__(self):
         string = "Input shape : %d \n" % self.input_shape
@@ -91,4 +103,5 @@ class Perceptron(object):
 
 perceptron = Perceptron(input_shape = x.shape[1])
 perceptron.fit(x, y)
+print(list(map(np.argmax, perceptron.predict(x))))
 print(perceptron.predict(x))
