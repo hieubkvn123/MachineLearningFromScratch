@@ -1,74 +1,77 @@
-import os
-import cv2
 import numpy as np 
-import pandas as pd 
 
-import matplotlib.pyplot as plt 
-from layers import Layer, Dense
-from losses import Loss
+from layers import Layer, Activation, DenseLayer
+from losses import Loss, MSE 
 
-### this class of neural net only works with flat vectors ###
+LOSS_LIST = ['mse', 'crossentropy']
+
 class NeuralNet(object):
-    def __init__(self, input_dim=None):
-        self.input_dim = input_dim
-        self.layers = list()
-        self.history = {}
-        self.history['error'] = [0 , 0]
-        # self.history['error'][0] = 0
-        # self.layers.append(Dense(input_dim))
+	def __init__(self):
+		self.layers = list()
+		self.loss = None
+		self.lr = None
+		self.units = None
 
-    def add_layer(self, layer):
-        if(not isinstance(layer, Layer)):
-            raise Exception("argument must be an instance of layers.Layer")
+	def add_layer(self, layer):
+		if(not isinstance(layer, Layer)):
+			raise Exception("Invalid layer")
 
-        self.layers.append(layer)
+		if(isinstance(layer, DenseLayer)):
+			self.units = layer.units
 
-    def forward(self, inputs):
-        if(len(self.layers) == 0):
-            raise Exception("This Neural Network is empty")
+		self.layers.append(layer)
 
-        if(inputs.shape[-1] != self.input_dim):
-            raise Exception("Input dim mismatch, expecting (n,%d)" % self.input_dim)
+	def __call__(self, inputs):
+		if(len(self.layers) < 1):
+			raise Exception("Neural Network is empty")
 
-        output = None
-        for i, layer in enumerate(self.layers):
-            if(i == 0):
-                output = layer(inputs)
-            else:
-                output = layer(output)
+		if(not isinstance(inputs, np.ndarray)):
+			raise Exception("Input must be a numpy array")
 
-        return output
+		if(len(inputs.shape) < 2):
+			raise Exception("Input must be a numpy array of arrays")			
 
-    def __call__(self, inputs):
-        outputs = self.forward(inputs)
-        
-        return outputs
+		output = self.layers[0](inputs)
 
-    def compile(self, optimizer, loss):
-        if(not isinstance(loss, Loss)):
-            raise Exception("The loss function must be an instance of loss.Loss")
+		for i in range(1, len(self.layers)):
+			output = self.layers[i](output)
 
-        self.optimizer = optimizer
-        self.loss = loss
-    
-    def fit(self,x ,y, epochs=10):
-        if(not isinstance(x, np.ndarray) or not isinstance(y, np.ndarray)):
-            raise Exception("Either input or label are not numpy array")
+		return output
 
-        if(x.shape[0] != y.shape[0]):
-            raise Exception("Input and label size mismatched")
+	def compile(self, loss='mse', lr=0.001):
+		global LOSS_LIST
 
-        for i in range(epochs):
-            output = self.forward(x)
-            error = self.loss(y, output)
-            self.history['error'][0] = self.history['error'][1]
-            self.history['error'][1] = error
+		if(loss not in LOSS_LIST and not isinstance(loss, Loss)):
+			raise Exception("Invalid loss")
 
-            # print(error.mean())
-            print("[INFO] Epoch %d, Loss = %.2f" % ((i+1), error))
+		if(isinstance(loss, str)):
+			if(loss == 'mse'):
+				self.loss = MSE()
 
-            for i, layer in enumerate(self.layers):
-                new_thetas = self.optimizer.update_theta(self.history['error'], layer.history['weights'])
-                layer.history['weights'][0] = layer.history['weights'][1]
-                layer.history['weights'][1] = new_thetas
-                layer.weights = new_thetas
+		else:
+			self.loss = loss 
+
+		self.lr = lr 
+
+	def train(self, inputs, labels, epochs):
+		if(not isinstance(labels, np.ndarray)):
+			raise Exception("Label must be a numpy array")
+
+		### if labels are scalars ###
+		if(len(labels.shape) == 1):
+			labels_ = list()
+			for label in labels:
+				new_label = np.eye(self.units)[label]
+				labels_.append(new_label)
+			labels = np.array(labels_)
+
+		for i in range(epochs):
+			output = self.__call__(inputs)
+			print(output)
+			loss = self.loss(output, labels)
+			print(loss)
+
+			for layer in self.layers:
+				if(isinstance(layer, DenseLayer)):
+					layer.backward(self.lr, loss)
+					# print(layer.weights)

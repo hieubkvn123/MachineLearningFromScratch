@@ -1,97 +1,80 @@
-import os
-import sys
-import traceback
-import cv2
-import numpy as np
+import numpy as np 
 
 class Layer(object):
-    def __init__(self):
-        pass
-       
+	def __init__(self):
+		pass
+
 class Activation(Layer):
-    def __init__(self, name='none'):
-        self.name = name
+	def __init__(self):
+		pass 
 
-    def softmax(self, inputs):        
-        if(not isinstance(inputs, np.ndarray)):
-            raise Exception("Input must be a numpy array")
-        
-        if(len(inputs.shape) < 2):
-            raise Exception("Input must be a 2D array")
+class DenseLayer(Layer):
+	def __init__(self):
+		pass
 
-        sum_exp = sum(list(map(lambda x_ : np.exp(x_), inputs))) 
-        x = np.exp(inputs) / sum_exp
-        
-        return x
+class ReLU(Activation):
+	def __init__(self):
+		pass 
 
-    def __call__(self, inputs):
-        ### check if the input is 2D ###
-        if(not isinstance(inputs, np.ndarray)):
-            raise Exception("Input must be a numpy array")
-        
-        if(len(inputs.shape) < 2):
-            raise Exception("Input must be a 2D array")
+	def __call__(self, inputs):
+		if(not isinstance(inputs, np.ndarray)):
+			raise Exception("Input must be a numpy array")
 
-        activation = None
-        if(self.name == 'relu'):
-            activation = lambda x : np.clip(x, 1e-8, 1e8)
+		if(len(inputs.shape) < 2):
+			raise Exception("Input must be a numpy array of arrays")
 
-        elif(self.name == 'tanh'):
-            activation = lambda x : np.tanh(x)
-        
-        elif(self.name == 'sigmoid'):
-            activation = lambda x : 1/(1 + np.exp(-x))
+		inputs[np.where(inputs < 0)] = 0
 
-        elif(self.name == 'softmax'):
-            activation = lambda x : self.softmax(x)
+		return inputs
 
-        elif(self.name == 'none'):
-            activation = lambda x : x
+class SoftMax(Activation):
+	def __init__(self):
+		pass
 
-        else:
-            raise Exception("Invalid activation function")
+	def __call__(self, inputs):
+		if(not isinstance(inputs, np.ndarray)):
+			raise Exception("Input must be a numpy array")
 
-        return activation(inputs)
+		if(len(inputs.shape) < 2):
+			raise Exception("Input must be a numpy array of arrays")
 
-class Dense(Layer):
-    def __init__(self, units=None, activation='relu'):
-        super(Dense, self).__init__()
-        self.units = units
-        self.weights = None
-        self.activation = Activation(activation)
+		outputs = np.exp(inputs) / np.exp(inputs).sum(axis=1, keepdims=True)
 
-    ### the input shape should be [num_data, input_shape]
-    def forward(self, inputs):
-        ### initialize your weights as you have the input ###
-        ### the weights (theta) shape should be  ###
-        if( not isinstance(inputs, np.ndarray)):
-            raise Exception("The input is not an array")
+		return outputs
 
-        if(len(inputs.shape) < 2):
-            raise Exception("Input dimension is insufficient, expecting a 2D array")
+class Dense(DenseLayer):
+	def __init__(self, units = None):
+		if(units is None):
+			raise Exception("Unit must not be none")
 
-        self.input_dim = inputs.shape[-1] # the last dimension
-        
-        ### if the weights has not been initialized ###
-        if(self.weights is None):
-            self.weights = np.ones((self.input_dim, self.units))
+		self.input_shape = None
+		self.weights = None
+		self.inputs = None 
+		self.units = units
 
-            ### Keep history of weights and errors for gradients ###
-            self.history = {}
-            self.history['weights'] = [[], []]
-            self.history['weights'][0] = np.zeros((self.input_dim, self.units)) 
-            self.history['weights'][1] = self.weights
-            # self.history['error'] = 0
+	def __call__(self, inputs):
+		if(not isinstance(inputs, np.ndarray)):
+			raise Exception("Input must be a numpy array")
 
-        output = inputs @ self.weights
-        output = self.activation(output)
+		if(len(inputs.shape) < 2):
+			raise Exception("Input must be a numpy array of arrays")
 
-        return output
+		### if first time called ###
+		if(self.weights is None):
+			batch_size = inputs.shape[0]
+			self.input_shape = inputs.shape[1]
+			self.weights = np.ones((self.input_shape, self.units)) / batch_size
 
-    def update(self):
-        pass
+		### Save inputs for back probagation ###
+		self.inputs = inputs
+		outputs = inputs @ self.weights
+		return outputs
 
-    def __call__(self, inputs):
-        outputs = self.forward(inputs)
+	def backward(self, lr, error):
+		for i in range(self.input_shape):
+			gradient = lr * error * self.inputs[:,i]
+			gradient = gradient.sum()
 
-        return outputs
+			self.weights[i] -= gradient
+
+

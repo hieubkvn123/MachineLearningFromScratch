@@ -1,40 +1,21 @@
-import os
-import numpy as np
+import numpy as np 
 
 class Loss(object):
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass
+	def __init__(self):
+		pass
 
 class MSE(Loss):
-    def __init__(self):
-        pass
+	def __init__(self):
+		pass 
 
-    def __to_categorical__(self, y_true):
-        category_ = list()
-        n_classes = len(np.unique(y_true))
+	def __call__(self, y_true, y_pred):
+		if(not isinstance(y_true, np.ndarray)):
+			raise Exception("Label must be a numpy array")
 
-        for y in y_true:
-            category = np.eye(n_classes)[y]
-            category_.append(category)
+		if(len(y_pred.shape) < 2):
+			raise Exception("Predictions must be a numpy array")
 
-        category_ = np.array(category_)
+		loss = (y_true - y_pred) ** 2
+		loss = np.mean(loss)# .sum()
 
-        return category_
-
-    def __call__(self, y_true, y_pred):
-        if(y_true.shape[0] != y_pred.shape[0]):
-            raise Exception("Label and prediction size mismatched")
-
-        N = y_true.shape[0]
-        if(len(y_true.shape) < 2):
-            y_true = self.__to_categorical__(y_true)
-
-        # print(y_true)
-        loss = (y_true - y_pred) ** 2
-        loss = loss.mean()
-
-        return loss
-
+		return loss
