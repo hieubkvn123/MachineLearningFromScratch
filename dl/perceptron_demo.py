@@ -4,6 +4,9 @@ import time
 ### Compare to tensorflow ###
 import tensorflow as tf
 
+### Visualize the results ###
+import matplotlib.pyplot as plt
+
 class_1 = np.array([[2,3], [1,2], [2.5, 3.5],
                     [1.5, 2.5], [2,2], [2.5,2.5],
                     [1.5,3],[2.5,1],[1,1]])
@@ -50,6 +53,7 @@ class Perceptron(object):
         self.weights = None
         self.bias = np.random.rand(1)
         self.lr = 1e-3
+        self.history = {'loss' : [], 'accuracy' : []}
 
     def one_hot_encode(self, y):
         return np.eye(self.n_classes)[y]
@@ -77,19 +81,46 @@ class Perceptron(object):
 
             ### Early stops if previous loss is smaller ###
             l = np.sum(mse(self.y, output))
+
+            ### store in history ###
+            self.history['loss'].append(l)
+
+            ### Compare to previous loss ###
             if(previous_loss < l):
+                ### Stop early if not improved ###
                 break
             previous_loss = l
 
+
+            ### Important : This is how we form the gradient matrix ###
             d_1 = gradient(self.y, output, loss=mse)
             d_2 = sigmoid_der(output)
             d_3 = self.x
+
+            ### multiply gradient 1 and 2 ###
+            ### take the product of multiplying inputs with the result ###
             g = d_3.transpose() @  np.multiply( d_1 , d_2 )
+
+            ### Applying gradient descent (SGD) ###
             self.weights -= self.lr * g
 
+            ### Store accuracy in history ###
+            predictions = list(map(np.argmax, self.predict(self.x)))
+            accuracy = self.accuracy_score(self.y, predictions)
+            self.history['accuracy'].append(accuracy)
 
             print('[INFO] Epoch %d, Loss = %.2f ...' % ((i+1),np.sum(l))) 
     
+    def accuracy_score(self,y, y_):
+        n_accurate = 0
+        N = y.shape[0]
+        y = list(map(np.argmax, y))
+        for i in  range(N):
+            if(y[i] == y_[i]):
+                n_accurate += 1
+
+        return n_accurate / N
+
     def predict(self, x):
         return sigmoid(x @ self.weights + self.bias)
 
@@ -105,3 +136,18 @@ perceptron = Perceptron(input_shape = x.shape[1])
 perceptron.fit(x, y)
 print(list(map(np.argmax, perceptron.predict(x))))
 print(perceptron.predict(x))
+
+### Visualizing the result (Loss - Accuracy) ###
+fig, ax = plt.subplots(1,2, figsize=(10,5))
+ax[0].grid(color='green')
+ax[0].plot(perceptron.history['accuracy'], color='orange', label = 'Accuracy')
+ax[0].set_facecolor('black')
+ax[1].grid(color='green')
+ax[1].set_facecolor('black')
+ax[1].plot(perceptron.history['loss'], color='blue', label = 'Loss')
+
+ax[0].legend()
+ax[1].legend()
+
+plt.title("Results Visualization")
+plt.show()
