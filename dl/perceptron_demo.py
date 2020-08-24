@@ -42,6 +42,7 @@ def mse(y, y_):
     return loss
 
 ### Use automatic differentiation here ###
+### Calculate approximate derivative of loss function w.r.t y_ ###
 def gradient(y,y_,loss=sigmoid):
     h = 1e-8
     return (loss(y, y_ + h) - loss(y, y_)) / h

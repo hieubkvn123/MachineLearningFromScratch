@@ -118,7 +118,8 @@ def predict(width, height, confidences, boxes, prob_threshold, iou_threshold=0.5
 
 	return picked_box_probs[:, :4].astype(np.int32), np.array(picked_labels), picked_box_probs[:, 4]
 
-video_capture = cv2.VideoCapture(0)
+### Get RPI4 IP as the camera source ###
+video_capture = cv2.VideoCapture('http://192.168.86.163:8080/video')
 
 onnx_path = 'ultra_light/ultra_light_models/ultra_light_640.onnx'
 onnx_model = onnx.load(onnx_path)
