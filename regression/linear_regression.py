@@ -10,8 +10,9 @@ from sklearn.preprocessing import LabelEncoder
 
 ### We need to predict weights of the fish ###
 DATA_FILE = 'Fish.csv'
-ITERATIONS = 1000
-LR = 1e-3
+ITERATIONS = 10000   
+MOMENTUM = 0.9
+LR = 1e-6
 
 le = LabelEncoder()
 dataframe = pd.read_csv(DATA_FILE, header=0).dropna()
@@ -30,7 +31,7 @@ theta = np.random.rand(features.shape[1], labels.shape[1])
 
 def mse(y_true, y_pred):
     e = (y_true - y_pred) ** 2
-    return np.mean(e)
+    return e
 
 def gradient(loss, y_true, features, theta):
     epsilon = 1e-8
@@ -42,12 +43,19 @@ def gradient(loss, y_true, features, theta):
     for i in range(features.shape[0]):
         gradients = []
         for j in range(theta.shape[0]):
-            delta = theta + np.eye(theta.shape[0])[j] * epsilon 
-            y_pred_ = features @ (theta + delta)
-            loss_ = mse(y_true, y_pred_)
+            delta = np.eye(theta.shape[0])[j] * epsilon
+            delta = delta.reshape(4, 1)
+            
+            theta_ = theta + delta 
+            y_pred_ = features @ theta_
 
-            g = (loss_ - loss) * (1/epsilon)
+            loss_ = mse(y_true, y_pred_)[i][0]
+            loss  = mse(y_true, y_pred)[i][0]
+
+            g = (loss_ - loss) / epsilon
+
             gradients.append(g)
+        
         gradient_matrix.append(gradients)
 
     return np.array(gradient_matrix)
@@ -55,8 +63,8 @@ def gradient(loss, y_true, features, theta):
 for i in range(ITERATIONS):
     y_pred = features @ theta
     e = mse(labels, y_pred)
+    e = np.mean(e)
     print('[INFO] Iteration %d, loss : %.2f' % (i + 1, e))
 
-    g = gradient(mse, labels, features, theta).sum(axis=0)
-    print(g)
+    g = gradient(mse, labels, features, theta).mean(axis=0)
     theta = theta - LR * g

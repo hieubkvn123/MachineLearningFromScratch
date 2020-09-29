@@ -1,33 +1,27 @@
-### Sample for calculating matrix determinant ###
-matrix = [[1,2,3],[1,0,1],[2,1,3]]
+import numpy as np
 
-def del_row_col(a, row, col):
-    a_ = []
-    for r in range(len(a)):
-        r_ = []
-        if(r == row):
-            continue
-        else:
-            for c in range(len(a[r])):
-                if(c == col):
-                    continue
-                else:
-                    r_.append(a[r][c])
-    
-        a_.append(r_)
+x = np.array([2,1,3])
 
-    print(a_)
-    return a_
+def f(x):
+    x_ = x.copy()
+    x_[0] *= 2
+    x_[1] = x_[1] ** 3 + 2
+    x_[2] = x_[2] ** 2 + x_[2] * 3
 
-def det(a):
-    if(len(a) == 2):
-        return a[0][0] * a[1][1] - a[0][1] * a[1][0]
+    return x_
+def dy_dx(x):
+    epsilon = 1e-8
+    derivative = []
 
-    else:
-        determinant = 0
-        for i in range(len(a)):
-            determinant += ((-1) ** i) * a[0][i] * det(del_row_col(a, 0, i))
+    for i in range(x.shape[0]):
+        a_ = x + np.eye(x.shape[0])[i] * epsilon
+        a  = x
 
-        return determinant
+        dy = f(a_)[i] - f(a)[i]
+        dx = epsilon
 
-print(det(matrix))
+        derivative.append(dy/dx)
+
+    return np.array(derivative)
+
+print(f(x), dy_dx(x))
