@@ -41,7 +41,7 @@ class Network(object):
            
         if('name' not in layer.keys()):
             layer_name = 'layer_%d' % len(self.layers)
-        else:
+        else::
             layer_name = layer['name']
 
         self.layers.append({
@@ -57,9 +57,10 @@ class Network(object):
     def backward(self, inputs):
         eps = 1e-8
         for i, layer in enumerate(self.layers):
+            
 
 inputs = np.random.rand(30, 10)
 net = Network(name='new', input_shape=[10])
 net.add_layer({'output_channel' : 5, 'activation':'sigmoid'})
 net.add_layer({'output_channel' : 2, 'activation':'sigmoid'})
-print(net.forward(inputs))
+print(net.forward(inputs, net.layers))
