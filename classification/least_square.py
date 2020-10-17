@@ -43,14 +43,22 @@ def autograd(y_true, params, inputs, loss=RSS):
 
     return Jacobian
 
+previous_loss = np.inf
 for i  in range(1950):
     predictions = x @ weights
     loss = RSS(y, predictions).mean()
+
+    if(loss > previous_loss or previous_loss - loss < 1e-7):
+        print('[*] Early stopping ... ')
+        break
+    
+    previous_loss = loss
 
     J = -x.transpose() @ (2 * (y - predictions))#autograd(y, weights, x)
     weights -= 1e-3 * J
     print('[*] Epoch {:04d} , RSS is {}'.format(i + 1, loss))
 
+print('-----------------------------------------------------------')
 print('[*] Stochastic solutions : ')
 print(weights)
 
