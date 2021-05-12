@@ -188,7 +188,9 @@ class IntuitiveFuzzy(object):
 
 	def intuitive_partition_dist(self, p1, p2):
 		"""
-			This function returns the distance between two partitions of attributes
+			This function returns the distance between two partitions of attributes. 
+			Note : When calculating the distance between an empty partition and a non-empty
+			partition. Just take the cardinality of the non-empty parition multiplied by |U|**2
 
 			Params :
 				- p1 : First partition of attributes 
@@ -235,18 +237,18 @@ class IntuitiveFuzzy(object):
 		pass
 
 
-data_file = 'heart.csv'
+data_file = 'sample2.csv'
 data = pd.read_csv(data_file, header=0)
-data = data[['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12','a13','d']]
-data['d'] = LabelEncoder().fit_transform(data['d'].values)
-for i in list(data.columns[:-1]):
-	values = data[i].values
-	max_ = max(values)
-	min_ = min(values)
-	data[i] = (values - min_) / (max_ - min_)
+# data = data[['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12','a13','d']]
+# data['d'] = LabelEncoder().fit_transform(data['d'].values)
+# for i in list(data.columns[:-1]):
+# 	values = data[i].values
+# 	max_ = max(values)
+# 	min_ = min(values)
+# 	data[i] = (values - min_) / (max_ - min_)
 
 F = IntuitiveFuzzy(data)
 # print(F.intuitive_partition_dist(['a1', 'a2'], ['a2', 'a3']))
 # print(F.intuitive_partition_dist(['a2', 'a3'], ['a3', 'a4']))
 # print(F.intuitive_partition_dist(['a1', 'a2'], ['a4', 'a3']))
-print(F.sig(['a1', 'a2'], 'a3'))
+print(F._get_cardinality(F.relational_matrices['d'])) 
