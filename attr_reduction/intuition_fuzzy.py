@@ -246,9 +246,30 @@ class IntuitiveFuzzy(object):
 
 		return sig
 
-	def filter(self):
-		pass
+	def filter(self, verbose=0):
+		# initialization 
+		B = []
+		W = []
+		d = self.intuitive_partition_dist(B, B + [self.attributes[-1]])
+		D = self.intuitive_partition_dist(self.C, self.attributes)
 
+		# Filter phase 
+		while(d > D):
+			max_sig = 0
+			c_m = None
+			for c in set(self.C).difference(set(B)):
+				SIG_B_c = self.sig(B, c)
+				if(SIG_B_c > max_sig):
+					max_sig = SIG_B_c
+					c_m = c 
+
+			B.append(c_m)
+			W.append(B.copy()) 
+
+			# Re-calculate d
+			d = self.intuitive_partition_dist(B, B + [self.attributes[-1]])
+
+		return W
 
 data_file = 'sample2.csv'
 data = pd.read_csv(data_file, header=0)
@@ -261,7 +282,18 @@ data = pd.read_csv(data_file, header=0)
 # 	data[i] = (values - min_) / (max_ - min_)
 
 F = IntuitiveFuzzy(data)
+print(F.filter())
+
+### Test Cases for sig and distance ###
+### --- Distance --- ###
 # print(F.intuitive_partition_dist(['a1', 'a2'], ['a2', 'a3']))
 # print(F.intuitive_partition_dist(['a2', 'a3'], ['a3', 'a4']))
 # print(F.intuitive_partition_dist(['a1', 'a2'], ['a4', 'a3']))
-print(F.intuitive_partition_dist([], ['d']))
+
+### --- Sig --- ###
+# print(F.sig([], 'c1'))
+# print(F.sig([], 'c2'))
+# print(F.sig([], 'c3'))
+# print(F.sig([], 'c4'))
+# print(F.sig([], 'c5'))
+# print(F.sig([], 'c6'))
