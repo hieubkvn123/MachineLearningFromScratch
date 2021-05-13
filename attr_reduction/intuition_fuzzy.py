@@ -4,6 +4,7 @@ import pandas as pd
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelEncoder
+from sklearn.svm import LinearSVC
 
 class IntuitiveFuzzy(object):
 	def __init__(self, dataframe):
@@ -16,9 +17,15 @@ class IntuitiveFuzzy(object):
 		self.data = dataframe
 		self.attributes = list(self.data.columns) # Including decision. Assume last column is decision values
 		self.C = self.attributes[:-1]
+		
+		### For filtering phase ###
 		self.num_attr = len(self.attributes)
 		self.num_objs = len(self.data.values)
 		self.relational_matrices = self._get_single_attr_IFRM(self.data)
+		
+		### For wrapper phase ###
+		self.features = self.data[self.C]
+		self.targets  = self.data[self.attributes[-1]]
 		print('[INFO] Done')
 
 
@@ -246,16 +253,32 @@ class IntuitiveFuzzy(object):
 
 		return sig
 
-	def filter(self, verbose=0):
+	def filter(self, verbose=False):
+		"""
+			The main function for the filter phase
+
+			Params :
+				- verbose : Show steps or not
+
+			Returns :
+				- W : A list of potential attributes list
+		"""
 		# initialization 
 		B = []
 		W = []
 		d = self.intuitive_partition_dist(B, B + [self.attributes[-1]])
 		D = self.intuitive_partition_dist(self.C, self.attributes)
 
+		if(verbose):
+			print('\n----- Filtering phase -----')
+			print('[INFO] Initialization for filter phase done ...')
+			print('    --> Distance from B --> (B union {d}) : %.2f' % d)
+			print('    --> Distance from C --> (C union {d}) : %.2f' % D)
+			print('-------------------------------------------------------')
+
 		# Filter phase 
+		num_steps = 1
 		while(d > D):
-			print(d)
 			max_sig = 0
 			c_m = None
 			for c in set(self.C).difference(set(B)):
@@ -269,32 +292,17 @@ class IntuitiveFuzzy(object):
 
 			# Re-calculate d
 			d = self.intuitive_partition_dist(B, B + [self.attributes[-1]])
+			
+			if(verbose):
+				print(f'[INFO] Step {num_steps} completed : ')
+				print(f'    --> Max(SIG_B_c) : {round(max_sig,2)}')
+				print(f'    --> Selected c_m = {c_m}')
+				print(f'    --> Distance from B -> (B union d) : {d}\n')
+
+			# increase step number
+			num_steps += 1
 
 		return W
 
-data_file = 'heart.csv'
-data = pd.read_csv(data_file, header=0)
-data = data[['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12','a13','d']]
-data['d'] = LabelEncoder().fit_transform(data['d'].values)
-for i in list(data.columns[:-1]):
-	values = data[i].values
-	max_ = max(values)
-	min_ = min(values)
-	data[i] = (values - min_) / (max_ - min_)
-
-F = IntuitiveFuzzy(data)
-print(F.filter())
-
-### Test Cases for sig and distance ###
-### --- Distance --- ###
-# print(F.intuitive_partition_dist(['a1', 'a2'], ['a2', 'a3']))
-# print(F.intuitive_partition_dist(['a2', 'a3'], ['a3', 'a4']))
-# print(F.intuitive_partition_dist(['a1', 'a2'], ['a4', 'a3']))
-
-### --- Sig --- ###
-# print(F.sig([], 'c1'))
-# print(F.sig([], 'c2'))
-# print(F.sig([], 'c3'))
-# print(F.sig([], 'c4'))
-# print(F.sig([], 'c5'))
-# print(F.sig([], 'c6'))
+	def wraper(self, verbose=0):
+		pass
