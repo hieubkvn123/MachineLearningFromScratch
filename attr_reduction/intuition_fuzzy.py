@@ -60,7 +60,7 @@ class IntuitiveFuzzy(object):
 
 	def _intersect_ifr(self, tup_list):
 		"""
-			This function complements get_multiple_attr_IFRM, it returns
+			This function complements _get_multiple_attr_IFRM, it returns
 			IFR(Q Union P) of the current tuple list 
 
 			Params :
@@ -73,7 +73,7 @@ class IntuitiveFuzzy(object):
 		return (min(_x[0] for _x in tup_list), max(_x[1] for _x in tup_list))
 
 	
-	def get_multiple_attr_IFRM(self, attributes):
+	def _get_multiple_attr_IFRM(self, attributes):
 		"""
 			This function returns the intuitive relational matrix of two or more attributes
 
@@ -113,8 +113,8 @@ class IntuitiveFuzzy(object):
 				- result : The IFRM of P intersect Q
 		"""
 		result = np.empty((self.num_objs, self.num_objs), dtype=tuple)
-		IFRM_1 = self.get_multiple_attr_IFRM(p1)
-		IFRM_2 = self.get_multiple_attr_IFRM(p2)
+		IFRM_1 = self._get_multiple_attr_IFRM(p1)
+		IFRM_2 = self._get_multiple_attr_IFRM(p2)
 
 		for i in range(self.num_objs):
 			for j in range(self.num_objs):
@@ -136,8 +136,8 @@ class IntuitiveFuzzy(object):
 				- result : The IFRM of P intersect Q
 		"""
 		result = np.empty((self.num_objs, self.num_objs), dtype=tuple)
-		IFRM_1 = self.get_multiple_attr_IFRM(p1)
-		IFRM_2 = self.get_multiple_attr_IFRM(p2)
+		IFRM_1 = self._get_multiple_attr_IFRM(p1)
+		IFRM_2 = self._get_multiple_attr_IFRM(p2)
 
 		for i in range(self.num_objs):
 			for j in range(self.num_objs):
@@ -199,6 +199,19 @@ class IntuitiveFuzzy(object):
 			Returns :
 				- result : A scalar representing the distance
 		"""
+		assert len(p1) > 0 or len(p2) > 0 # at least one of the partitions is non-empty
+
+		### If one of the partitions is empty ###
+		if(len(p1) == 0 or len(p2) == 0):
+			if(len(p1) == 0):
+				IFRM = self._get_multiple_attr_IFRM(p2)
+				return round(self._get_cardinality(IFRM) * (1/(self.num_objs*self.num_objs)),2)
+
+			elif(len(p2) == 0):
+				IFRM = self._get_multiple_attr_IFRM(p1)
+				return round(self._get_cardinality(IFRM) * (1/(self.num_objs*self.num_objs)),2)
+
+		### If both partitions are non-empty ###
 		intersected, intersection = self._is_intersected(p1, p2)
 
 		union_IFRM = self._get_union_IFRM(p1, p2)
@@ -251,4 +264,4 @@ F = IntuitiveFuzzy(data)
 # print(F.intuitive_partition_dist(['a1', 'a2'], ['a2', 'a3']))
 # print(F.intuitive_partition_dist(['a2', 'a3'], ['a3', 'a4']))
 # print(F.intuitive_partition_dist(['a1', 'a2'], ['a4', 'a3']))
-print(F._get_cardinality(F.relational_matrices['d'])) 
+print(F.intuitive_partition_dist([], ['d']))
