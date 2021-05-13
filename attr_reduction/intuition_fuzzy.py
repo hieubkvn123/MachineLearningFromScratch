@@ -255,6 +255,7 @@ class IntuitiveFuzzy(object):
 
 		# Filter phase 
 		while(d > D):
+			print(d)
 			max_sig = 0
 			c_m = None
 			for c in set(self.C).difference(set(B)):
@@ -271,15 +272,15 @@ class IntuitiveFuzzy(object):
 
 		return W
 
-data_file = 'sample2.csv'
+data_file = 'heart.csv'
 data = pd.read_csv(data_file, header=0)
-# data = data[['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12','a13','d']]
-# data['d'] = LabelEncoder().fit_transform(data['d'].values)
-# for i in list(data.columns[:-1]):
-# 	values = data[i].values
-# 	max_ = max(values)
-# 	min_ = min(values)
-# 	data[i] = (values - min_) / (max_ - min_)
+data = data[['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12','a13','d']]
+data['d'] = LabelEncoder().fit_transform(data['d'].values)
+for i in list(data.columns[:-1]):
+	values = data[i].values
+	max_ = max(values)
+	min_ = min(values)
+	data[i] = (values - min_) / (max_ - min_)
 
 F = IntuitiveFuzzy(data)
 print(F.filter())
