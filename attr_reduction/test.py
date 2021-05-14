@@ -14,7 +14,11 @@ for i in list(data.columns[:-1]):
     data[i] = (values - min_) / (max_ - min_)
 
 F = IntuitiveFuzzy(data)
-print(F.filter(verbose=True))
+W = F.filter(verbose=True)
+B_best = F.wrapper(W, verbose=True)
+print(W)
+print(B_best)
+
 
 ### Test Cases for sig and distance using sample2.csv ###
 ### --- Distance --- ###

@@ -5,6 +5,8 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import LinearSVC
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 class IntuitiveFuzzy(object):
 	def __init__(self, dataframe):
@@ -304,5 +306,39 @@ class IntuitiveFuzzy(object):
 
 		return W
 
-	def wraper(self, verbose=0):
-		pass
+	def wrapper(self, attr_candidates, verbose=False):
+		"""
+				This function will choose the best candidate attribute list from a list of
+				attributes list. The classifier used will be defaulted to LinearSVC
+
+				Params :
+						- attr_candidates : A list of attributes lists
+						- verbose : Show the steps
+
+				Returns :
+						- best_attr : A list of the best attributes
+		"""
+		best_attr = []
+		max_acc = 0.0
+
+		if(verbose) : print('\n----- Wrapper phase -----')
+		for candidate in attr_candidates:
+			if(verbose) : print(f'[INFO] Evaluating attributes list : {str(candidate)} ...')
+			features = self.features[candidate]
+			model = LinearSVC()
+
+			X_train, X_val, Y_train, Y_val = train_test_split(features, self.targets, test_size=0.5)
+			model.fit(X_train, Y_train)
+
+			predictions = model.predict(X_val)
+			accuracy = accuracy_score(predictions, Y_val)
+			if(verbose) : print(f'    --> Accuracy = {round(accuracy, 2)}')
+
+			if(accuracy > max_acc):
+				if(verbose) : print(f'    --> New best candidate!')
+				max_acc = accuracy	
+				best_attr = candidate
+
+			if(verbose) : print()
+
+		return best_attr
