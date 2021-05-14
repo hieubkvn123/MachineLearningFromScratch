@@ -1,7 +1,9 @@
 import pandas as pd
 from intuition_fuzzy import IntuitiveFuzzy
 
-data_file = 'sample2.csv'
+from sklearn.preprocessing import LabelEncoder
+
+data_file = 'heart.csv'
 data = pd.read_csv(data_file, header=0)
 data = data[['a1','a2','a3','a4','a5','a6','a7','a8','a9','a10','a11','a12','a13','d']]
 data['d'] = LabelEncoder().fit_transform(data['d'].values)
