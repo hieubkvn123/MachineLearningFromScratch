@@ -205,13 +205,16 @@ class DecisionTreeClassifier:
 			false_classes = classes[false_split]
 
 			if(isinstance(node.true_branch, Node)):
-				node.true_branch = self._post_pruning(node.true_branch, true_data, true_classes)
+				node.true_branch = self._post_pruning(node.true_branch, true_data, true_classes, verbose=verbose)
 
 			if(isinstance(node.false_branch, Node)):
-				node.false_branch = self._post_pruning(node.false_branch, false_data, false_classes)
+				node.false_branch = self._post_pruning(node.false_branch, false_data, false_classes, verbose=verbose)
 
 			return node
 
+	# A wrapper function for _post_pruning
+	def prune(self, data, classes, verbose=0):
+		self.root = self._post_pruning(self.root, data, classes, verbose=verbose)
 
 ### Load data ###
 columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num',
@@ -232,7 +235,7 @@ predictions = clf.predict(X_test)
 accuracy = accuracy_score(Y_test, predictions)
 print(accuracy)
 
-clf.root = clf._post_pruning(clf.root, X_test, Y_test)
+clf.prune(X_test, Y_test, verbose=1)
 
 predictions = clf.predict(X_test)
 accuracy = accuracy_score(Y_test, predictions)
