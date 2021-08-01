@@ -9,16 +9,42 @@ from collections import Counter
 
 class Condition:
 	def __init__(self, col, val):
+		'''
+			Splits a pandas data frame based on a condition applied on one of
+			its column. For numeric columns, the condition will match when the
+			value of that column is greater than or equal to self.val
+
+			Args :
+				col : Column name in the dataframe
+				val : The split value. equality condition is applied when the column
+					  is categorical. greater than or equal to condition will be applied
+					  if the column is numeric
+		'''
 		self.col = col 
 		self.val = val 
 		self.str = ""
 
+	def __str__(self):
+		return self.str
+
 	def _is_numeric(self, x):
+		'''
+			Checks if a value or a np.ndarray is of numeric type
+			Args :
+				x : A scalar or a np.ndarray vector
+		'''
 		if(not isinstance(x, np.ndarray)):
 			return isinstance(x, int) or isinstance(x, float)
 		return np.issubdtype(x.dtype, np.number) or np.issubdtype(x.dtype, np.number)
 	
 	def match(self, data):
+		'''
+			Returns a boolean mask which is True for rows that matches the condition of this
+			object, False otherwise/
+
+			Args :
+				data : A pd.DataFrame to match against the condition
+		'''
 		col = data[self.col]
 
 		if(self._is_numeric(col)):
@@ -27,10 +53,12 @@ class Condition:
 		else:
 			return col == self.val
 
-	def __str__(self):
-		return self.str
-
 	def split(self, data):
+		'''
+			Returns two index Series of the rows that match and do not match the condition
+			Args :
+				data : A pd.DataFrame to be splitted
+		'''
 		mask = self.match(data)
 
 		true_split = mask[mask == True]
@@ -176,8 +204,7 @@ class DecisionTreeClassifier:
 		else: 
 			return None
 
-	# Post-pruning
-	def _post_pruning(self, node, data, classes, verbose=0):
+	def __trim_leaf(self, node, data, classes, verbose=0):
 		if(isinstance(node.true_branch, Leaf) and isinstance(node.false_branch, Leaf)):
 			leaf = self.__merge_leaf(node)
 			err_leaf = sum((leaf.prediction != classes).astype('int'))
@@ -195,7 +222,13 @@ class DecisionTreeClassifier:
 				return leaf 
 			else:
 				return node 
+		else:
+			return node
 
+	# Post-pruning
+	def _post_pruning(self, node, data, classes, verbose=0):
+		if(isinstance(node.true_branch, Leaf) and isinstance(node.false_branch, Leaf)):
+			return self.__trim_leaf(node, data, classes, verbose=verbose)
 		else:
 			true_split, false_split = node.condition.split(data)
 			true_data = data.loc[true_split]
@@ -210,33 +243,40 @@ class DecisionTreeClassifier:
 			if(isinstance(node.false_branch, Node)):
 				node.false_branch = self._post_pruning(node.false_branch, false_data, false_classes, verbose=verbose)
 
-			return node
+			# One final trim 
+			return self.__trim_leaf(node, data, classes, verbose=verbose)
 
 	# A wrapper function for _post_pruning
 	def prune(self, data, classes, verbose=0):
 		self.root = self._post_pruning(self.root, data, classes, verbose=verbose)
 
-### Load data ###
-columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num',
-			'marital-status', 'occupation', 'relationship', 'race',
-			'sex', 'capital-gain', 'capital-loss', 'hours-per-week',
-			'native-country', 'class']
+if __name__ == '__main__':
+	### Load data ###
+	columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num',
+				'marital-status', 'occupation', 'relationship', 'race',
+				'sex', 'capital-gain', 'capital-loss', 'hours-per-week',
+				'native-country', 'class']
 
-data = pd.read_csv('adult.data', names=columns)
+	data = pd.read_csv('adult.data', names=columns)
 
-features = data[list(data.columns)[:-1]]
-targets = data[list(data.columns)[-1]]
-clf = DecisionTreeClassifier(max_depth=10)
+	features = data[list(data.columns)[:-1]]
+	targets = data[list(data.columns)[-1]]
 
-X_train, X_test, Y_train, Y_test = train_test_split(features, targets, test_size=1/3)
-clf.fit(X_train, Y_train, verbose=1)
+	### Build a decision tree ###
+	clf = DecisionTreeClassifier(max_depth=10)
 
-predictions = clf.predict(X_test)
-accuracy = accuracy_score(Y_test, predictions)
-print(accuracy)
+	### Train the decision tree ###
+	X_train, X_test, Y_train, Y_test = train_test_split(features, targets, test_size=1/3)
+	clf.fit(X_train, Y_train, verbose=1)
 
-clf.prune(X_test, Y_test, verbose=1)
+	### Prediction before pruning ###
+	predictions = clf.predict(X_test)
+	accuracy = accuracy_score(Y_test, predictions)
+	print(accuracy)
 
-predictions = clf.predict(X_test)
-accuracy = accuracy_score(Y_test, predictions)
-print(accuracy)
+	### Prune and make prediction after pruning ###
+	clf.prune(X_test, Y_test, verbose=1)
+
+	predictions = clf.predict(X_test)
+	accuracy = accuracy_score(Y_test, predictions)
+	print(accuracy)
