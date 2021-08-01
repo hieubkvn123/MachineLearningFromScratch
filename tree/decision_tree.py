@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
 from collections import Counter
 
@@ -45,9 +46,11 @@ class Node:
 
 class Leaf:
 	def __init__(self, classes):
-		classes = classes.values 
+		if(isinstance(classes, pd.Series)):
+			classes = classes.values 
 		class_counts = Counter(classes)
 
+		self.classes = classes 
 		self.prediction = class_counts.most_common(1)[0][0]
 
 
@@ -118,7 +121,7 @@ class DecisionTreeClassifier:
 	def _build_tree(self, data, classes, current_depth=1, verbose=0):
 		best_impurity, best_condition = self._get_best_split(data, classes)
 		
-		if(best_impurity == 1 or best_condition is None or current_depth >= self.max_depth):
+		if(best_condition is None or current_depth >= self.max_depth or len(np.unique(classes)) == 1):
 			if(verbose >= 1):
 				print(f'[INFO] Reached leaf, current depth {current_depth}, Classes : {self._get_class_freq(classes)}')
 			return Leaf(classes)
@@ -162,6 +165,53 @@ class DecisionTreeClassifier:
 
 		return labels
 
+	# Function for merging two leaf branch to one leaf branch
+	def __merge_leaf(self, node):
+		if(isinstance(node.true_branch, Leaf) and isinstance(node.false_branch, Leaf)):
+			classes_true = node.true_branch.classes  
+			classes_false = node.false_branch.classes 
+			new_leaf = Leaf(np.concatenate([classes_true, classes_false]))
+
+			return new_leaf
+		else: 
+			return None
+
+	# Post-pruning
+	def _post_pruning(self, node, data, classes, verbose=0):
+		if(isinstance(node.true_branch, Leaf) and isinstance(node.false_branch, Leaf)):
+			leaf = self.__merge_leaf(node)
+			err_leaf = sum((leaf.prediction != classes).astype('int'))
+
+			pred_no_leaf = []
+			for i in range(len(data)):
+				label = self._classify(data.iloc[i], node=node)
+				pred_no_leaf.append(label)
+
+			err_no_leaf = sum((np.array(pred_no_leaf) != classes).astype('int'))
+
+			if(err_leaf <= err_no_leaf):
+				if(verbose >= 1):
+					print(f'[INFO] Tree pruned, errors without merge : {err_no_leaf}, errors with merge : {err_leaf}')
+				return leaf 
+			else:
+				return node 
+
+		else:
+			true_split, false_split = node.condition.split(data)
+			true_data = data.loc[true_split]
+			true_classes = classes[true_split]
+
+			false_data = data.loc[false_split]
+			false_classes = classes[false_split]
+
+			if(isinstance(node.true_branch, Node)):
+				node.true_branch = self._post_pruning(node.true_branch, true_data, true_classes)
+
+			if(isinstance(node.false_branch, Node)):
+				node.false_branch = self._post_pruning(node.false_branch, false_data, false_classes)
+
+			return node
+
 
 ### Load data ###
 columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num',
@@ -174,9 +224,16 @@ data = pd.read_csv('adult.data', names=columns)
 features = data[list(data.columns)[:-1]]
 targets = data[list(data.columns)[-1]]
 clf = DecisionTreeClassifier(max_depth=10)
-clf.fit(features, targets, verbose=1)
 
-predictions = clf.predict(features)
-accuracy = accuracy_score(targets, predictions)
+X_train, X_test, Y_train, Y_test = train_test_split(features, targets, test_size=1/3)
+clf.fit(X_train, Y_train, verbose=1)
 
+predictions = clf.predict(X_test)
+accuracy = accuracy_score(Y_test, predictions)
+print(accuracy)
+
+clf.root = clf._post_pruning(clf.root, X_test, Y_test)
+
+predictions = clf.predict(X_test)
+accuracy = accuracy_score(Y_test, predictions)
 print(accuracy)
