@@ -68,12 +68,30 @@ class Condition:
 
 class Node:
 	def __init__(self, condition, true_branch, false_branch):
+		'''
+			Non-leaf node in the decision tree.
+
+			Args :
+				condition : A Condition object that helps splitting data into 
+				either branch.
+				true_branch : Pointer to the child Node where the rows satisfy
+				the condition held by the Condition object.
+				false_branch : Pointer to the child Node where the rows do not
+				satisfy the condition held by the condition object.
+		'''
 		self.condition = condition 
 		self.true_branch = true_branch 
 		self.false_branch = false_branch
 
 class Leaf:
 	def __init__(self, classes):
+		'''
+			Leaf node in the decision tree.
+			Args :
+				classes : Classes of the rows that are splitted into this leaf 
+				node. Prediction is created based on the class that makes up the 
+				majority.
+		'''
 		if(isinstance(classes, pd.Series)):
 			classes = classes.values 
 		class_counts = Counter(classes)
@@ -83,9 +101,25 @@ class Leaf:
 
 
 class DecisionTreeClassifier:
-	def __init__(self, max_depth=10):
+	def __init__(self, max_depth=10, criterion='gini'):
+		'''
+			Classification decision tree.
+
+			Args :
+				max_depth : The maximum height of the decision tree
+				criterion : The splitting criterion
+		'''
 		self.max_depth = max_depth
 		self.root = None
+
+		self.criterion = self._get_gini_index
+		if(criterion != 'gini'):
+			if(criterion == 'entropy'):
+				self.criterion = self._get_entropy
+			elif(criterion == 'variance'):
+				self.criterion = self._get_variance
+			else:
+				raise Exception('Invalid splitting criterion')
 
 	def _get_unique_values(self, class_arr):
 		return np.unique(class_arr)
@@ -106,6 +140,24 @@ class DecisionTreeClassifier:
 			gini -= p ** 2
 
 		return gini
+
+	# Criterion based on Entropy
+	def _get_entropy(self, classes):
+		entropy = 0 
+		for _class in self._get_unique_values(classes):
+			p = len(classes[classes == _class])/len(classes)
+			entropy += -p * np.log2(p)
+
+		return entropy
+
+	# Criterion based on variance
+	def _get_variance(self, classes):
+		variance = 0 
+		for _class in self._get_unique_values(classes):
+			p = len(classes[classes == _class])/len(classes)
+			variance += p * (1 - p)
+
+		return variance
 
 	def _get_best_split(self, data, classes, verbose=0):
 		columns = set(data.columns)
@@ -132,8 +184,8 @@ class DecisionTreeClassifier:
 				# If we cannot partition based on this condition -> skip
 				if(len(true_split) == 0 or len(false_split) == 0): continue
 
-				impurity_true = self._get_gini_index(classes[true_split])
-				impurity_false = self._get_gini_index(classes[false_split])
+				impurity_true = self.criterion(classes[true_split])
+				impurity_false = self.criterion(classes[false_split])
 				impurity = impurity_true * true_p + impurity_false * false_p 
 
 				if(impurity < best_impurity):
@@ -168,6 +220,15 @@ class DecisionTreeClassifier:
 
 	# Train the classification tree
 	def fit(self, data, classes, verbose=0):
+		'''
+			A wrapper function that calls the tree induction function _build_tree
+			to train this decision tree classifier.
+
+			Args:
+				data : pd.DataFrame or np.ndarray. A matrix of features used to 
+				predict the target classes.
+				classes : pd.Series or np.ndarray. Array of classes to predict.
+		'''
 		self.root = self._build_tree(data, classes, verbose=verbose)
 
 	# Classify function
@@ -185,6 +246,13 @@ class DecisionTreeClassifier:
 
 	# A wraper to perform batch classification
 	def predict(self, rows):
+		'''
+			A wrapper function for _classify to perform batch prediction.
+
+			Args :
+				rows : pd.DataFrame or np.ndarray. A matrix of features used
+				to predict the target classes.
+		'''
 		labels = []
 
 		for i in range(len(rows)):
@@ -248,6 +316,15 @@ class DecisionTreeClassifier:
 
 	# A wrapper function for _post_pruning
 	def prune(self, data, classes, verbose=0):
+		'''
+			Perform post-pruning using a portion of the training dataset.
+
+			Args :
+				data : pd.DataFrame or np.ndarray. A matrix of features of the 
+				dataset used to perform post-pruning.
+				classes : pd.Series or np.ndarray. An array of classes of the 
+				dataset used to perform post-pruning.
+		'''
 		self.root = self._post_pruning(self.root, data, classes, verbose=verbose)
 
 if __name__ == '__main__':
@@ -263,7 +340,7 @@ if __name__ == '__main__':
 	targets = data[list(data.columns)[-1]]
 
 	### Build a decision tree ###
-	clf = DecisionTreeClassifier(max_depth=10)
+	clf = DecisionTreeClassifier(max_depth=10, criterion='entropy')
 
 	### Train the decision tree ###
 	X_train, X_test, Y_train, Y_test = train_test_split(features, targets, test_size=1/3)
@@ -280,3 +357,19 @@ if __name__ == '__main__':
 	predictions = clf.predict(X_test)
 	accuracy = accuracy_score(Y_test, predictions)
 	print(accuracy)
+
+	### Load data ###
+	columns = ['age', 'workclass', 'fnlwgt', 'education', 'education-num',
+				'marital-status', 'occupation', 'relationship', 'race',
+				'sex', 'capital-gain', 'capital-loss', 'hours-per-week',
+				'native-country', 'class']
+
+	data = pd.read_csv('adult.test', names=columns).dropna()
+	data['class'] = data['class'].apply(lambda x : x.replace('.', ''))
+
+	features = data[list(data.columns)[:-1]]
+	targets = data[list(data.columns)[-1]]
+
+	predictions = clf.predict(features)
+	accuracy = accuracy_score(targets, predictions)
+	print(f'Accuracy of the model on the testing set : {accuracy}')
